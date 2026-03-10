@@ -327,16 +327,7 @@
   .about-badges { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; }
   .about-badge { background: rgba(229,9,20,0.1); border: 1px solid rgba(229,9,20,0.2); color: var(--white); padding: 10px 20px; border-radius: 25px; font-size: 0.85rem; font-weight: 600; }
 
-  /* REVIEWS */
-  .reviews-section { position: relative; z-index: 1; padding: 0 5% 60px; }
-  .reviews-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
-  .review-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 20px; }
-  .review-stars { color: #F5C518; font-size: 0.9rem; margin-bottom: 10px; }
-  .review-text { color: #ccc; font-size: 0.88rem; line-height: 1.7; margin-bottom: 14px; }
-  .review-author { display: flex; align-items: center; gap: 10px; }
-  .review-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--netflix); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; flex-shrink: 0; }
-  .review-name { font-weight: 700; font-size: 0.88rem; }
-  .review-date { color: var(--gray); font-size: 0.75rem; }
+
 
   /* COUPON */
   .coupon-banner { position: relative; z-index: 1; margin: 0 5% 40px; background: linear-gradient(135deg, rgba(229,9,20,0.15), rgba(229,9,20,0.05)); border: 1px dashed rgba(229,9,20,0.4); border-radius: 16px; padding: 20px 28px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
@@ -370,6 +361,13 @@
     <div class="hero-tag">✦ بطاقات رقمية أصلية ١٠٠٪</div>
     <h1>بطاقاتك <span class="highlight">الرقمية</span><br>بين يديك فوراً</h1>
     <p>اشترِ اشتراكات نتفليكس، شاهد، وثمانية بأسعار تنافسية واستلام فوري</p>
+    <div style="display:inline-flex;align-items:center;gap:14px;background:rgba(229,9,20,0.08);border:1px dashed rgba(229,9,20,0.35);border-radius:14px;padding:14px 24px;margin-bottom:32px;cursor:pointer" onclick="navigator.clipboard.writeText('FR10');showToast('✅ تم نسخ كود الخصم!')">
+      <div style="text-align:right">
+        <div style="font-size:0.78rem;color:var(--gray);margin-bottom:2px">🎁 كود خصم 10% للعملاء الجدد</div>
+        <div style="font-family:'Tajawal',sans-serif;font-size:1.5rem;font-weight:900;color:var(--netflix);letter-spacing:3px">FR10</div>
+      </div>
+      <div style="background:var(--netflix);color:white;padding:8px 16px;border-radius:8px;font-weight:700;font-size:0.82rem;white-space:nowrap">📋 انسخ</div>
+    </div>
     <div class="hero-stats">
       <div class="stat"><div class="stat-num">🔥</div><div class="stat-label">متجر موثوق</div></div>
       <div class="stat"><div class="stat-num" style="color:var(--spotify)">⚡ فوري</div><div class="stat-label">وقت الاستلام</div></div>
@@ -425,27 +423,7 @@
     <div class="comments-list" id="commentsList"></div>
   </div>
 
-  <!-- REVIEWS -->
-  <div class="section-title" style="padding-top:0"><h2>آراء العملاء ⭐</h2><div class="title-line"></div></div>
-  <div class="reviews-section">
-    <div class="reviews-grid">
-      <div class="review-card">
-        <div class="review-stars">★★★★★</div>
-        <p class="review-text">خدمة ممتازة وسريعة، استلمت كود نتفليكس خلال دقائق. أنصح الكل!</p>
-        <div class="review-author"><div class="review-avatar" style="background:#E50914">م</div><div><div class="review-name">محمد العتيبي</div><div class="review-date">منذ يومين</div></div></div>
-      </div>
-      <div class="review-card">
-        <div class="review-stars">★★★★★</div>
-        <p class="review-text">اشتريت اشتراك شاهد وجاني الكود فوري، سعر ممتاز ومضمون 100%.</p>
-        <div class="review-author"><div class="review-avatar" style="background:#00A9E0">س</div><div><div class="review-name">سارة الشمري</div><div class="review-date">منذ أسبوع</div></div></div>
-      </div>
-      <div class="review-card">
-        <div class="review-stars">★★★★★</div>
-        <p class="review-text">تعامل راقي وخدمة احترافية. صار عندي عميل دائم لـ FouriCard!</p>
-        <div class="review-author"><div class="review-avatar" style="background:#1DB954">خ</div><div><div class="review-name">خالد القحطاني</div><div class="review-date">منذ أسبوعين</div></div></div>
-      </div>
-    </div>
-  </div>
+
 
   <!-- FAQ -->
   <div class="section-title"><h2>أسئلة شائعة ❓</h2><div class="title-line"></div></div>
@@ -585,10 +563,10 @@
     <h2>أهلاً بك في FouriCard!</h2>
     <p>متجرك الموثوق للاشتراكات الرقمية بأسعار تنافسية واستلام فوري</p>
     <div class="welcome-coupon">
-      <span>FOURI10</span>
+      <span>FR10</span>
       <p>كود خصم 10% خاص للعملاء الجدد</p>
     </div>
-    <button class="welcome-close" onclick="navigator.clipboard.writeText('FOURI10'); closeWelcome()">📋 انسخ الكود وابدأ التسوق</button>
+    <button class="welcome-close" onclick="navigator.clipboard.writeText('FR10'); closeWelcome()">📋 انسخ الكود وابدأ التسوق</button>
     <button class="welcome-skip" onclick="closeWelcome()">تخطي</button>
   </div>
 </div>
