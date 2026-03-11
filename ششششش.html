@@ -1,0 +1,1535 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FouriCard | بطاقات رقمية فورية</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Tajawal:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #080808;
+    --dark: #0f0f0f;
+    --card-bg: #161616;
+    --card-hover: #1e1e1e;
+    --border: #242424;
+    --border-light: #2e2e2e;
+    --white: #f0f0eb;
+    --gray: #888;
+    --gray-light: #aaa;
+    --netflix: #E50914;
+    --netflix-dark: #b0060f;
+    --shahid: #00A9E0;
+    --xbox: #107C10;
+    --spotify: #1DB954;
+    --gold: #F5C518;
+    --sidebar-width: 300px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Cairo', sans-serif; background: var(--black); color: var(--white); min-height: 100vh; overflow-x: hidden; }
+
+  body::before {
+    content: ''; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(ellipse 70% 50% at 15% 15%, rgba(229,9,20,0.06) 0%, transparent 60%),
+      radial-gradient(ellipse 50% 40% at 85% 85%, rgba(29,185,84,0.04) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 50% 50%, rgba(0,169,224,0.02) 0%, transparent 60%);
+  }
+
+  /* ===== PAGE SYSTEM ===== */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* ===== MAINTENANCE BANNER ===== */
+  .maintenance-banner {
+    background: linear-gradient(90deg, #F5C518, #ffb300, #F5C518);
+    background-size: 200% 100%;
+    animation: shimmerBanner 3s ease-in-out infinite;
+    color: #000; padding: 10px 20px; text-align: center;
+    font-weight: 700; font-size: 0.88rem;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    font-family: Cairo, sans-serif; position: relative; z-index: 200;
+  }
+  @keyframes shimmerBanner { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+  .maintenance-banner span { font-size: 0.78rem; font-weight: 400; opacity: 0.75; }
+
+  /* ===== NAVBAR ===== */
+  nav {
+    position: sticky; top: 0; z-index: 150;
+    background: rgba(8,8,8,0.95); backdrop-filter: blur(24px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 20px; display: flex; align-items: center;
+    justify-content: space-between; height: 64px;
+    gap: 16px;
+  }
+
+  .hamburger {
+    width: 40px; height: 40px; background: var(--card-bg);
+    border: 1px solid var(--border); border-radius: 10px;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; gap: 5px; cursor: pointer;
+    transition: all 0.25s; flex-shrink: 0;
+  }
+  .hamburger:hover { border-color: var(--netflix); background: rgba(229,9,20,0.08); }
+  .hamburger span {
+    display: block; width: 18px; height: 2px;
+    background: var(--white); border-radius: 2px;
+    transition: all 0.3s;
+  }
+  .hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+  .hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
+  .hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+  .logo {
+    font-family: 'Tajawal', sans-serif; font-weight: 900;
+    font-size: 1.5rem; cursor: pointer; user-select: none;
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--netflix); }
+
+  .nav-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+  .nav-icon-btn {
+    position: relative; width: 42px; height: 42px;
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 10px; display: flex; align-items: center;
+    justify-content: center; cursor: pointer; font-size: 1.1rem;
+    transition: all 0.2s;
+  }
+  .nav-icon-btn:hover { border-color: var(--netflix); background: rgba(229,9,20,0.08); }
+
+  .cart-count, .fav-count-badge {
+    position: absolute; top: -5px; left: -5px;
+    background: var(--netflix); color: white; font-size: 0.62rem;
+    font-weight: 900; width: 17px; height: 17px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid var(--black);
+  }
+  .fav-count-badge { background: #ff4d6d; display: none; }
+  .fav-count-badge.show { display: flex; }
+
+  /* ===== SIDEBAR ===== */
+  .sidebar-overlay {
+    position: fixed; inset: 0; z-index: 299;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(4px);
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.3s;
+  }
+  .sidebar-overlay.show { opacity: 1; pointer-events: all; }
+
+  .sidebar {
+    position: fixed; top: 0; right: -100%;
+    width: var(--sidebar-width); max-width: 85vw;
+    height: 100vh; z-index: 300;
+    background: var(--dark);
+    border-left: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    transition: right 0.35s cubic-bezier(0.4,0,0.2,1);
+    overflow-y: auto;
+    box-shadow: -20px 0 60px rgba(0,0,0,0.5);
+  }
+  .sidebar.open { right: 0; }
+
+  .sidebar-header {
+    padding: 20px 20px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  .sidebar-logo {
+    font-family: 'Tajawal', sans-serif; font-weight: 900; font-size: 1.4rem;
+    color: var(--white);
+  }
+  .sidebar-logo span { color: var(--netflix); }
+  .sidebar-close {
+    width: 32px; height: 32px; background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border); border-radius: 8px;
+    color: var(--gray); cursor: pointer; font-size: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .sidebar-close:hover { color: var(--white); border-color: var(--netflix); }
+
+  .sidebar-user {
+    padding: 16px 20px;
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(229,9,20,0.05);
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-avatar {
+    width: 44px; height: 44px; background: rgba(229,9,20,0.15);
+    border: 1px solid rgba(229,9,20,0.3); border-radius: 12px;
+    display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
+    flex-shrink: 0;
+  }
+  .sidebar-welcome { font-weight: 700; font-size: 0.95rem; }
+  .sidebar-sub { color: var(--gray); font-size: 0.78rem; margin-top: 2px; }
+
+  .sidebar-nav { padding: 8px 12px; }
+  .sidebar-link {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 12px; border-radius: 10px;
+    color: var(--gray-light); font-size: 0.9rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+    text-decoration: none; margin-bottom: 2px;
+    position: relative;
+  }
+  .sidebar-link:hover { background: rgba(255,255,255,0.05); color: var(--white); }
+  .sidebar-link.active { background: rgba(229,9,20,0.1); color: var(--white); }
+  .sidebar-icon { font-size: 1.1rem; width: 24px; text-align: center; flex-shrink: 0; }
+  .sidebar-cart-badge {
+    position: static; margin-right: auto;
+    width: 20px; height: 20px; font-size: 0.68rem;
+    background: var(--netflix); border: none;
+  }
+
+  .sidebar-divider { height: 1px; background: var(--border); margin: 8px 20px; }
+  .sidebar-section-title {
+    padding: 8px 24px 4px; color: var(--gray); font-size: 0.72rem;
+    font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
+  }
+
+  .sidebar-footer {
+    margin-top: auto; padding: 16px 20px;
+    border-top: 1px solid var(--border);
+    color: var(--gray); font-size: 0.75rem;
+    display: flex; justify-content: space-between; flex-shrink: 0;
+  }
+
+  /* ===== HERO ===== */
+  .hero { position: relative; z-index: 1; padding: 80px 5% 60px; text-align: center; overflow: hidden; }
+  .hero::after {
+    content: ''; position: absolute; bottom: 0; left: 5%; right: 5%;
+    height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent);
+  }
+
+  .hero-tag {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: rgba(229,9,20,0.1); border: 1px solid rgba(229,9,20,0.25);
+    color: var(--netflix); font-size: 0.78rem; font-weight: 700;
+    padding: 6px 16px; border-radius: 20px; margin-bottom: 24px;
+    animation: tagPulse 3s ease-in-out infinite;
+  }
+  @keyframes tagPulse { 0%,100%{box-shadow:0 0 0 0 rgba(229,9,20,0)} 50%{box-shadow:0 0 0 6px rgba(229,9,20,0)} }
+
+  .hero h1 {
+    font-family: 'Tajawal', sans-serif; font-weight: 900;
+    font-size: clamp(2.2rem, 6vw, 4rem); line-height: 1.2; margin-bottom: 16px;
+  }
+  .hero h1 .highlight { color: var(--netflix); }
+  .hero p {
+    color: var(--gray); font-size: 1.05rem; margin-bottom: 36px;
+    max-width: 480px; margin-left: auto; margin-right: auto; line-height: 1.8;
+  }
+
+  .coupon-chip {
+    display: inline-flex; align-items: center; gap: 14px;
+    background: rgba(229,9,20,0.07); border: 1px dashed rgba(229,9,20,0.35);
+    border-radius: 14px; padding: 12px 20px; margin-bottom: 36px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .coupon-chip:hover { background: rgba(229,9,20,0.12); border-style: solid; }
+  .coupon-chip-label { font-size: 0.76rem; color: var(--gray); margin-bottom: 2px; }
+  .coupon-chip-code { font-family: 'Tajawal', sans-serif; font-size: 1.4rem; font-weight: 900; color: var(--netflix); letter-spacing: 3px; }
+  .coupon-chip-btn { background: var(--netflix); color: white; padding: 7px 14px; border-radius: 8px; font-weight: 700; font-size: 0.78rem; white-space: nowrap; }
+
+  .hero-stats { display: flex; justify-content: center; gap: 40px; flex-wrap: wrap; }
+  .stat { text-align: center; }
+  .stat-num { font-family: 'Tajawal', sans-serif; font-size: 1.7rem; font-weight: 900; }
+  .stat-label { font-size: 0.78rem; color: var(--gray); margin-top: 2px; }
+
+  /* Typewriter */
+  #typewriterText {
+    font-family: 'Tajawal', sans-serif; font-size: clamp(1.8rem, 5vw, 2.6rem);
+    font-weight: 900; letter-spacing: 5px; direction: ltr;
+    margin-bottom: 24px; height: 60px; display: flex;
+    align-items: center; justify-content: center;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* ===== FILTERS ===== */
+  .filters {
+    position: relative; z-index: 1; padding: 32px 5% 32px;
+    display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;
+  }
+  .filter-btn {
+    background: var(--card-bg); border: 1px solid var(--border);
+    color: var(--gray); padding: 8px 20px; border-radius: 25px;
+    font-family: 'Cairo', sans-serif; font-size: 0.85rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .filter-btn:hover { color: var(--white); border-color: var(--border-light); }
+  .filter-btn.active { background: var(--netflix); border-color: var(--netflix); color: white; }
+
+  /* ===== SECTION TITLE ===== */
+  .section-title { position: relative; z-index: 1; padding: 0 5% 28px; display: flex; align-items: center; gap: 14px; }
+  .section-title h2 { font-family: 'Tajawal', sans-serif; font-weight: 800; font-size: 1.4rem; white-space: nowrap; }
+  .title-line { flex: 1; height: 1px; background: linear-gradient(90deg, var(--border), transparent); }
+
+  /* ===== PRODUCTS GRID ===== */
+  .products {
+    position: relative; z-index: 1; padding: 0 5% 80px;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 18px;
+  }
+
+  .product-card {
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 18px; overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s, border-color 0.3s;
+    cursor: pointer; animation: fadeUp 0.5s ease both;
+  }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+  .product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 16px 50px rgba(0,0,0,0.5);
+    border-color: rgba(229,9,20,0.25);
+  }
+
+  .card-header {
+    padding: 22px 20px 18px; display: flex; align-items: center;
+    justify-content: space-between; position: relative;
+    border-bottom: 1px solid var(--border);
+  }
+  .brand-logo {
+    width: 50px; height: 50px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.4rem; font-weight: 900; flex-shrink: 0; overflow: hidden;
+  }
+  .card-meta { text-align: right; flex: 1; padding-right: 12px; }
+  .card-brand { font-size: 0.76rem; color: var(--gray); margin-bottom: 3px; }
+  .card-name { font-weight: 700; font-size: 1rem; }
+
+  .badge {
+    position: absolute; top: 14px; left: 14px;
+    font-size: 0.66rem; font-weight: 700; padding: 3px 9px; border-radius: 8px;
+  }
+  .badge-hot { background: rgba(229,9,20,0.18); color: var(--netflix); border: 1px solid rgba(229,9,20,0.3); }
+  .badge-new { background: rgba(29,185,84,0.18); color: var(--spotify); border: 1px solid rgba(29,185,84,0.3); }
+  .badge-best { background: rgba(245,197,24,0.18); color: var(--gold); border: 1px solid rgba(245,197,24,0.3); }
+
+  .fav-btn {
+    position: absolute; top: 12px; right: 12px;
+    width: 30px; height: 30px; border-radius: 50%;
+    border: 1px solid var(--border); background: var(--dark);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 0.9rem; transition: all 0.2s; z-index: 2;
+  }
+  .fav-btn:hover { border-color: #ff4d6d; transform: scale(1.1); }
+  .fav-btn.active { background: rgba(255,77,109,0.12); border-color: #ff4d6d; }
+
+  .card-body { padding: 18px 20px; }
+  .card-desc { color: var(--gray); font-size: 0.83rem; line-height: 1.7; margin-bottom: 16px; }
+  .card-features { display: flex; flex-direction: column; gap: 7px; }
+  .feature { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; color: #bbb; }
+  .feature-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+
+  .card-footer { padding: 0 20px 20px; }
+  .sold-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 0.76rem; color: var(--gray); margin-bottom: 10px;
+  }
+  .sold-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--spotify); animation: soldPulse 1.5s ease-in-out infinite; }
+  @keyframes soldPulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.5;transform:scale(1.3)} }
+
+  .buy-btn {
+    width: 100%; padding: 11px 18px; border-radius: 11px; border: none;
+    font-family: 'Cairo', sans-serif; font-size: 0.88rem; font-weight: 700;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .buy-btn:hover { filter: brightness(1.12); transform: translateY(-1px); }
+
+  /* ===== TRUST STRIP ===== */
+  .trust-strip {
+    position: relative; z-index: 1; margin: 0 5% 60px;
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 18px; padding: 24px 28px;
+    display: flex; justify-content: space-around; flex-wrap: wrap; gap: 20px;
+  }
+  .trust-item { display: flex; align-items: center; gap: 12px; }
+  .trust-icon { font-size: 1.7rem; }
+  .trust-text strong { display: block; font-weight: 700; font-size: 0.92rem; }
+  .trust-text span { color: var(--gray); font-size: 0.78rem; }
+
+  /* ===== ABOUT ===== */
+  .about-section {
+    position: relative; z-index: 1; margin: 0 5% 60px;
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 20px; padding: 40px; text-align: center;
+  }
+  .about-section h2 { font-family: 'Tajawal', sans-serif; font-weight: 900; font-size: 1.8rem; margin-bottom: 14px; }
+  .about-section p { color: var(--gray); line-height: 1.9; font-size: 0.93rem; max-width: 580px; margin: 0 auto 26px; }
+  .about-badges { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+  .about-badge { background: rgba(229,9,20,0.08); border: 1px solid rgba(229,9,20,0.18); color: var(--white); padding: 9px 18px; border-radius: 25px; font-size: 0.82rem; font-weight: 600; }
+
+  /* ===== FAQ ===== */
+  .faq-section { position: relative; z-index: 1; padding: 0 5% 60px; max-width: 800px; margin: 0 auto; }
+  .faq-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 10px; overflow: hidden; }
+  .faq-q { padding: 16px 20px; font-weight: 700; font-size: 0.92rem; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: background 0.2s; }
+  .faq-q:hover { background: rgba(255,255,255,0.03); }
+  .faq-icon { color: var(--netflix); font-size: 1.2rem; transition: transform 0.3s; }
+  .faq-a { padding: 0 20px; max-height: 0; overflow: hidden; transition: all 0.3s; color: var(--gray); font-size: 0.86rem; line-height: 1.8; }
+  .faq-a.open { padding: 0 20px 16px; max-height: 200px; }
+  .faq-icon.open { transform: rotate(45deg); }
+
+  /* ===== COMMENTS ===== */
+  .comments-section { position: relative; z-index: 1; padding: 0 5% 60px; max-width: 800px; margin: 0 auto; }
+  .comment-form { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 22px; margin-bottom: 22px; }
+  .comment-form h3 { font-weight: 700; font-size: 0.95rem; margin-bottom: 14px; }
+  .comment-inputs { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
+  .comment-textarea { width: 100%; background: var(--dark); border: 1px solid var(--border); color: var(--white); padding: 12px 14px; border-radius: 10px; font-family: 'Cairo', sans-serif; font-size: 0.88rem; outline: none; text-align: right; resize: none; height: 85px; transition: border-color 0.2s; margin-bottom: 10px; }
+  .comment-textarea:focus { border-color: var(--netflix); }
+  .comment-stars-select { display: flex; gap: 6px; margin-bottom: 12px; flex-direction: row-reverse; justify-content: flex-end; }
+  .star-btn { background: none; border: none; font-size: 1.3rem; cursor: pointer; color: #444; transition: color 0.15s; }
+  .star-btn.active { color: #F5C518; }
+  .submit-comment-btn { background: var(--netflix); color: white; border: none; padding: 10px 24px; border-radius: 10px; font-family: 'Cairo', sans-serif; font-weight: 700; font-size: 0.88rem; cursor: pointer; transition: all 0.2s; }
+  .submit-comment-btn:hover { filter: brightness(1.1); }
+  .comments-list { display: flex; flex-direction: column; gap: 12px; }
+  .comment-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; }
+  .comment-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .comment-author { display: flex; align-items: center; gap: 10px; }
+  .comment-avatar { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.88rem; flex-shrink: 0; }
+  .comment-name { font-weight: 700; font-size: 0.88rem; }
+  .comment-date { color: var(--gray); font-size: 0.73rem; }
+  .comment-rating { color: #F5C518; font-size: 0.82rem; }
+  .comment-text { color: #ccc; font-size: 0.86rem; line-height: 1.7; }
+  @media (max-width: 600px) { .comment-inputs { grid-template-columns: 1fr; } }
+
+  /* ===== PRODUCT PAGE ===== */
+  .product-page { position: relative; z-index: 1; padding: 40px 5%; max-width: 900px; margin: 0 auto; }
+  .back-btn { display: flex; align-items: center; gap: 8px; color: var(--gray); font-size: 0.88rem; cursor: pointer; margin-bottom: 28px; background: none; border: none; font-family: 'Cairo', sans-serif; transition: color 0.2s; }
+  .back-btn:hover { color: var(--white); }
+  .product-detail { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; margin-bottom: 32px; }
+  .product-visual { background: var(--card-bg); border: 1px solid var(--border); border-radius: 20px; padding: 50px 32px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  .product-visual .big-logo { font-size: 4.5rem; font-weight: 900; width: 110px; height: 110px; border-radius: 22px; display: flex; align-items: center; justify-content: center; margin-bottom: 18px; overflow: hidden; }
+  .product-visual h2 { font-family: 'Tajawal', sans-serif; font-weight: 900; font-size: 1.7rem; margin-bottom: 8px; }
+  .product-visual p { color: var(--gray); font-size: 0.88rem; }
+  .product-info { display: flex; flex-direction: column; gap: 18px; }
+  .product-info h1 { font-family: 'Tajawal', sans-serif; font-weight: 900; font-size: 1.9rem; }
+  .product-info .desc { color: var(--gray); line-height: 1.8; font-size: 0.92rem; }
+  .features-list { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 18px; display: flex; flex-direction: column; gap: 10px; }
+  .features-list h3 { font-size: 0.88rem; color: var(--gray); margin-bottom: 4px; }
+  .feat-item { display: flex; align-items: center; gap: 10px; font-size: 0.88rem; }
+  .feat-check { width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; flex-shrink: 0; }
+  .price-box { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 22px; }
+  .price-big { font-family: 'Tajawal', sans-serif; font-size: 1.9rem; font-weight: 900; line-height: 1; }
+  .price-note { color: var(--gray); font-size: 0.8rem; margin-top: 6px; margin-bottom: 18px; }
+  .qty-selector { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; }
+  .qty-label { font-size: 0.88rem; color: var(--gray); }
+  .qty-controls { display: flex; align-items: center; gap: 10px; }
+  .qty-btn { width: 30px; height: 30px; border-radius: 8px; border: 1px solid var(--border); background: var(--dark); color: var(--white); font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+  .qty-btn:hover { border-color: var(--netflix); color: var(--netflix); }
+  .qty-num { font-family: 'Tajawal', sans-serif; font-size: 1.1rem; font-weight: 700; min-width: 24px; text-align: center; }
+  .add-cart-btn { width: 100%; padding: 13px; border-radius: 11px; border: none; font-family: 'Cairo', sans-serif; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+  .add-cart-btn:hover { filter: brightness(1.1); transform: translateY(-2px); }
+  .whatsapp-btn { width: 100%; padding: 11px; border-radius: 11px; border: 1px solid #25D366; background: transparent; color: #25D366; font-family: 'Cairo', sans-serif; font-size: 0.88rem; font-weight: 600; cursor: pointer; margin-top: 10px; transition: all 0.2s; }
+  .whatsapp-btn:hover { background: #25D366; color: white; }
+  .plan-option { border: 2px solid var(--border); border-radius: 12px; padding: 13px 15px; cursor: pointer; transition: all 0.2s; display: flex; justify-content: space-between; align-items: center; }
+  .plan-option:hover { border-color: rgba(229,9,20,0.4); background: rgba(229,9,20,0.03); }
+
+  /* Compare table */
+  .compare-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 0.83rem; }
+  .compare-table th { padding: 9px; border-bottom: 1px solid var(--border); color: var(--gray); font-weight: 600; }
+  .compare-table td { padding: 9px; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .compare-table tr:last-child td { border-bottom: none; }
+  .compare-table .best { color: var(--netflix); font-weight: 700; }
+  .compare-check { color: #1DB954; }
+  .compare-x { color: #555; }
+
+  /* ===== CART PAGE ===== */
+  .cart-page { position: relative; z-index: 1; padding: 40px 5%; max-width: 800px; margin: 0 auto; }
+  .cart-page h1 { font-family: 'Tajawal', sans-serif; font-weight: 900; font-size: 1.9rem; margin-bottom: 28px; }
+  .cart-empty { text-align: center; padding: 70px 20px; color: var(--gray); }
+  .cart-empty .empty-icon { font-size: 3.5rem; margin-bottom: 14px; }
+  .cart-empty p { font-size: 1.05rem; margin-bottom: 22px; }
+  .cart-items { display: flex; flex-direction: column; gap: 14px; margin-bottom: 28px; }
+  .cart-item { background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+  .cart-item-top { display: flex; align-items: center; gap: 12px; }
+  .cart-item-logo { width: 46px; height: 46px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; font-weight: 900; flex-shrink: 0; overflow: hidden; }
+  .cart-item-info { flex: 1; text-align: right; }
+  .cart-item-name { font-weight: 700; font-size: 0.93rem; margin-bottom: 3px; line-height: 1.4; }
+  .cart-item-price { color: var(--gray); font-size: 0.8rem; }
+  .cart-item-bottom { display: flex; align-items: center; justify-content: space-between; }
+  .cart-item-qty { display: flex; align-items: center; gap: 10px; }
+  .cart-item-total { font-family: 'Tajawal', sans-serif; font-weight: 900; font-size: 1.15rem; color: #E50914; }
+  .remove-btn { background: none; border: none; color: var(--gray); cursor: pointer; font-size: 1.05rem; transition: color 0.2s; padding: 4px; }
+  .remove-btn:hover { color: var(--netflix); }
+  .cart-summary { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 22px; }
+  .summary-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; color: var(--gray); }
+  .summary-total { display: flex; justify-content: space-between; align-items: center; padding: 14px 0 18px; }
+  .summary-total span:first-child { font-weight: 700; font-size: 1.05rem; }
+  .total-price { font-family: 'Tajawal', sans-serif; font-weight: 900; font-size: 1.7rem; color: var(--netflix); }
+  .checkout-btn { width: 100%; padding: 14px; border-radius: 12px; border: none; background: var(--netflix); color: white; font-family: 'Cairo', sans-serif; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.2s; margin-bottom: 10px; }
+  .checkout-btn:hover { filter: brightness(1.1); transform: translateY(-2px); }
+  .continue-btn { width: 100%; padding: 13px; border-radius: 12px; border: 1px solid var(--border); background: transparent; color: var(--gray); font-family: 'Cairo', sans-serif; font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+  .continue-btn:hover { border-color: var(--white); color: var(--white); }
+  .coupon-input-row { display: flex; gap: 10px; margin-bottom: 14px; }
+  .coupon-input { flex: 1; background: var(--dark); border: 1px solid var(--border); color: var(--white); padding: 11px 14px; border-radius: 10px; font-family: 'Cairo', sans-serif; font-size: 0.88rem; outline: none; text-align: right; transition: border-color 0.2s; }
+  .coupon-input:focus { border-color: var(--netflix); }
+  .coupon-apply-btn { background: var(--netflix); color: white; border: none; padding: 11px 18px; border-radius: 10px; font-family: 'Cairo', sans-serif; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
+  .coupon-apply-btn:hover { filter: brightness(1.1); }
+  .coupon-msg { font-size: 0.8rem; margin-bottom: 10px; padding: 7px 11px; border-radius: 8px; display: none; }
+  .coupon-msg.success { background: rgba(29,185,84,0.1); color: #1DB954; border: 1px solid rgba(29,185,84,0.3); display: block; }
+  .coupon-msg.error { background: rgba(229,9,20,0.1); color: var(--netflix); border: 1px solid rgba(229,9,20,0.3); display: block; }
+  .discount-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 0.88rem; color: #1DB954; }
+
+  /* ===== CHECKOUT PAGE ===== */
+  .checkout-page { position: relative; z-index: 1; padding: 40px 5%; max-width: 700px; margin: 0 auto; }
+  .checkout-page h1 { font-family: 'Tajawal', sans-serif; font-weight: 900; font-size: 1.9rem; margin-bottom: 28px; }
+  .checkout-section { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 22px; margin-bottom: 18px; }
+  .checkout-section h3 { font-weight: 700; font-size: 0.95rem; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .form-group { margin-bottom: 14px; }
+  .form-label { display: block; font-size: 0.82rem; color: var(--gray); margin-bottom: 7px; }
+  .form-input { width: 100%; background: var(--dark); border: 1px solid var(--border); color: var(--white); padding: 11px 14px; border-radius: 10px; font-family: 'Cairo', sans-serif; font-size: 0.88rem; transition: border-color 0.2s; outline: none; text-align: right; }
+  .form-input:focus { border-color: var(--netflix); }
+  .payment-options { display: flex; flex-direction: column; gap: 10px; }
+  .payment-option { display: flex; align-items: center; gap: 12px; padding: 14px; border: 2px solid var(--border); border-radius: 12px; cursor: pointer; transition: all 0.2s; }
+  .payment-option:hover { border-color: var(--gray); }
+  .payment-option.selected { border-color: var(--netflix); background: rgba(229,9,20,0.05); }
+  .payment-option input { display: none; }
+  .payment-icon { font-size: 1.7rem; }
+  .payment-info { text-align: right; flex: 1; }
+  .payment-info strong { display: block; font-weight: 700; }
+  .payment-info span { color: var(--gray); font-size: 0.8rem; }
+  .payment-detail { background: var(--dark); border: 1px solid var(--border); border-radius: 10px; padding: 14px; margin-top: 10px; display: none; }
+  .payment-detail.show { display: block; }
+  .payment-detail p { font-size: 0.83rem; color: var(--gray); margin-bottom: 7px; }
+  .payment-number { font-family: 'Tajawal', sans-serif; font-size: 1.3rem; font-weight: 900; color: var(--white); letter-spacing: 2px; }
+  .order-summary { background: var(--dark); border-radius: 10px; padding: 14px; margin-bottom: 14px; }
+  .order-summary-item { display: flex; justify-content: space-between; font-size: 0.86rem; padding: 5px 0; color: var(--gray); }
+  .order-summary-total { display: flex; justify-content: space-between; font-weight: 700; font-size: 0.95rem; padding-top: 10px; border-top: 1px solid var(--border); margin-top: 7px; }
+  .place-order-btn { width: 100%; padding: 15px; border-radius: 12px; border: none; background: var(--netflix); color: white; font-family: 'Cairo', sans-serif; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.2s; }
+  .place-order-btn:hover { filter: brightness(1.1); transform: translateY(-2px); }
+
+  /* ===== SUCCESS PAGE ===== */
+  .success-page { position: relative; z-index: 1; padding: 80px 5%; text-align: center; max-width: 580px; margin: 0 auto; }
+  .success-icon { font-size: 4.5rem; margin-bottom: 22px; animation: bounce 0.6s ease; }
+  @keyframes bounce { 0%,100%{transform:scale(1)} 50%{transform:scale(1.2)} }
+  .success-page h1 { font-family: 'Tajawal', sans-serif; font-weight: 900; font-size: 2rem; margin-bottom: 14px; color: var(--spotify); }
+  .success-page p { color: var(--gray); font-size: 0.95rem; line-height: 1.8; margin-bottom: 28px; }
+  .success-steps { background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 22px; text-align: right; margin-bottom: 28px; }
+  .success-step { display: flex; align-items: flex-start; gap: 12px; padding: 11px 0; border-bottom: 1px solid var(--border); }
+  .success-step:last-child { border-bottom: none; }
+  .step-num { width: 26px; height: 26px; border-radius: 50%; background: var(--netflix); color: white; font-size: 0.78rem; font-weight: 900; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 2px; }
+  .step-text strong { display: block; font-weight: 700; font-size: 0.92rem; margin-bottom: 3px; }
+  .step-text span { color: var(--gray); font-size: 0.8rem; }
+  .whatsapp-order-btn { display: inline-flex; align-items: center; gap: 10px; background: #25D366; color: white; padding: 13px 28px; border-radius: 12px; font-family: 'Cairo', sans-serif; font-size: 0.95rem; font-weight: 700; cursor: pointer; border: none; transition: all 0.2s; margin-bottom: 14px; }
+  .whatsapp-order-btn:hover { filter: brightness(1.1); transform: translateY(-2px); }
+  .home-btn { display: inline-block; color: var(--gray); font-size: 0.88rem; cursor: pointer; background: none; border: none; font-family: 'Cairo', sans-serif; transition: color 0.2s; }
+  .home-btn:hover { color: var(--white); }
+
+  /* ===== FAVORITES PAGE ===== */
+  .favs-empty { text-align:center; padding: 70px 20px; color: var(--gray); }
+  .favs-empty .empty-icon { font-size: 3.5rem; margin-bottom: 14px; }
+  .favs-empty p { font-size: 1.05rem; margin-bottom: 22px; }
+
+  /* ===== GIFT MODAL ===== */
+  .modal-overlay { position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.85); backdrop-filter: blur(6px); display: flex; align-items: flex-start; justify-content: center; padding: 20px; overflow-y: auto; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+  .modal-overlay.show { opacity: 1; pointer-events: all; }
+  .modal-box { background: #161616; border: 1px solid #2a2a2a; border-radius: 20px; padding: 28px 24px; max-width: 420px; width: 100%; margin: auto; transform: translateY(30px); transition: transform 0.3s; }
+  .modal-overlay.show .modal-box { transform: translateY(0); }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+  .modal-title { font-family: 'Tajawal', sans-serif; font-weight: 900; font-size: 1.25rem; }
+  .modal-close { background: none; border: none; color: #888; font-size: 1.3rem; cursor: pointer; line-height: 1; padding: 4px; }
+  .modal-close:hover { color: white; }
+  .modal-product-info { background: #111; border: 1px solid #2a2a2a; border-radius: 12px; padding: 13px 15px; margin-bottom: 20px; display: flex; align-items: center; gap: 12px; }
+  .modal-product-logo { width: 42px; height: 42px; border-radius: 10px; overflow: hidden; flex-shrink: 0; }
+  .modal-product-logo img { width: 100%; height: 100%; object-fit: cover; }
+  .modal-product-name { font-weight: 700; font-size: 0.93rem; }
+  .modal-product-price { color: #E50914; font-family: 'Tajawal', sans-serif; font-weight: 900; font-size: 0.95rem; margin-top: 2px; }
+  .modal-field { margin-bottom: 14px; }
+  .modal-label { font-size: 0.8rem; color: #888; margin-bottom: 6px; display: block; }
+  .modal-input { width: 100%; background: #111; border: 1px solid #2a2a2a; border-radius: 10px; padding: 11px 13px; color: white; font-family: 'Cairo', sans-serif; font-size: 0.9rem; outline: none; transition: border-color 0.2s; }
+  .modal-input:focus { border-color: #25D366; }
+  .modal-input::placeholder { color: #555; }
+  .modal-note { background: rgba(37,211,102,0.08); border: 1px solid rgba(37,211,102,0.25); border-radius: 10px; padding: 11px 13px; font-size: 0.8rem; color: #25D366; margin-bottom: 18px; line-height: 1.7; }
+  .gift-send-btn { width: 100%; padding: 13px; border-radius: 11px; border: none; background: #25D366; color: white; font-family: 'Cairo', sans-serif; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .gift-send-btn:hover { background: #20bc5a; transform: translateY(-2px); }
+  .gift-btn { width: 100%; padding: 11px; border-radius: 11px; border: 1px solid #f5c518; background: rgba(245,197,24,0.08); color: #f5c518; font-family: 'Cairo', sans-serif; font-size: 0.88rem; font-weight: 700; cursor: pointer; margin-top: 10px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .gift-btn:hover { background: rgba(245,197,24,0.18); transform: translateY(-1px); }
+
+  /* ===== TOAST ===== */
+  .toast { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%) translateY(100px); background: var(--spotify); color: white; padding: 11px 22px; border-radius: 25px; font-weight: 700; font-size: 0.88rem; z-index: 9999; transition: transform 0.3s; white-space: nowrap; }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* ===== FLOATING WHATSAPP ===== */
+  .wa-float { position: fixed; bottom: 16px; right: 16px; z-index: 999; background: #25D366; color: white; width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; cursor: pointer; box-shadow: 0 4px 20px rgba(37,211,102,0.4); text-decoration: none; transition: transform 0.2s; animation: waFloat 2.5s ease-in-out infinite; }
+  .wa-float:hover { transform: scale(1.1) !important; }
+  @keyframes waFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+  .wa-tooltip { position: fixed; bottom: 72px; right: 16px; background: var(--card-bg); border: 1px solid var(--border); color: var(--white); font-size: 0.72rem; padding: 5px 9px; border-radius: 8px; z-index: 998; white-space: nowrap; font-family: 'Cairo', sans-serif; }
+
+  /* ===== FOOTER ===== */
+  .footer { position: relative; z-index: 1; background: #0c0c0c; border-top: 1px solid var(--border); padding: 48px 5% 28px; margin-top: 60px; }
+  .footer-top { display: grid; grid-template-columns: 1.5fr 1fr; gap: 40px; margin-bottom: 36px; }
+  .footer-brand h3 { font-family: 'Tajawal', sans-serif; font-size: 1.7rem; font-weight: 900; margin-bottom: 10px; }
+  .footer-brand p { color: var(--gray); font-size: 0.83rem; line-height: 1.8; }
+  .footer-col h4 { font-weight: 700; font-size: 0.92rem; margin-bottom: 14px; color: white; }
+  .footer-col a { display: block; color: var(--gray); font-size: 0.83rem; text-decoration: none; margin-bottom: 9px; transition: color 0.2s; cursor: pointer; }
+  .footer-col a:hover { color: var(--netflix); }
+  .social-links { display: flex; gap: 10px; margin-top: 18px; }
+  .social-btn { width: 42px; height: 42px; border-radius: 11px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; border: 1px solid var(--border); text-decoration: none; }
+  .social-btn:hover { transform: translateY(-3px); border-color: var(--netflix); }
+  .social-instagram { background: linear-gradient(135deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
+  .social-twitter { background: #000; border-color: #333; }
+  .social-whatsapp { background: #25D366; }
+  .footer-bottom { border-top: 1px solid var(--border); padding-top: 22px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; }
+  .footer-copy { color: var(--gray); font-size: 0.78rem; }
+  .footer-copy span { color: var(--netflix); }
+
+  /* ===== LIVE NOTIFICATION ===== */
+  .live-notif {
+    position: fixed; bottom: 80px; right: -340px; z-index: 500;
+    background: var(--card-bg); border: 1px solid var(--border);
+    border-radius: 14px; padding: 12px 16px; width: 300px;
+    display: flex; align-items: center; gap: 12px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+    transition: right 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .live-notif.show { right: 74px; }
+  .live-notif-icon { font-size: 1.5rem; flex-shrink: 0; }
+  .live-notif-text { font-size: 0.82rem; font-weight: 600; flex: 1; }
+  .live-notif-time { font-size: 0.72rem; color: var(--gray); white-space: nowrap; }
+
+  /* ===== RESPONSIVE ===== */
+  @media (max-width: 700px) {
+    .footer-top { grid-template-columns: 1fr; }
+    .footer-bottom { flex-direction: column; text-align: center; }
+    .product-detail { grid-template-columns: 1fr; }
+    .products { grid-template-columns: 1fr; padding: 0 4% 60px; }
+    nav { padding: 0 14px; height: 58px; }
+    .logo { font-size: 1.3rem; }
+    .hero { padding: 50px 4% 40px; }
+    .hero h1 { font-size: 1.9rem; }
+    .hero p { font-size: 0.9rem; }
+    .hero-stats { gap: 18px; }
+    .filters { padding: 22px 4% 22px; gap: 7px; }
+    .filter-btn { padding: 7px 14px; font-size: 0.78rem; }
+    .section-title { padding: 0 4% 20px; }
+    .product-page { padding: 22px 4%; }
+    .product-visual { padding: 32px 18px; }
+    .product-visual .big-logo { width: 85px; height: 85px; font-size: 3rem; }
+    .cart-page, .checkout-page { padding: 22px 4%; }
+    .trust-strip { padding: 16px 14px; margin: 0 4% 50px; }
+    .about-section { margin: 0 4% 50px; padding: 30px 20px; }
+    .faq-section, .comments-section { padding: 0 4% 50px; }
+    .live-notif.show { right: 16px; }
+    .modal-box { padding: 20px 16px; }
+    .price-big { font-size: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- MAINTENANCE BANNER -->
+<div class="maintenance-banner">
+  🚧 المتجر قيد الإنشاء — لا تقم بأي عمليات شراء حالياً
+  <span>| سيتم الإطلاق قريباً ⚡</span>
+</div>
+
+<!-- NAVBAR -->
+<nav>
+  <button class="hamburger" id="hamburgerBtn" onclick="toggleSidebar()" aria-label="القائمة">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="logo" onclick="showPage('home')">Fouri<span>Card</span></div>
+  <div class="nav-actions">
+    <button class="nav-icon-btn" onclick="showPage('favorites')" title="المفضلة">
+      ❤️<div class="fav-count-badge" id="favCount">0</div>
+    </button>
+    <button class="nav-icon-btn" onclick="showPage('cart')">
+      🛒<div class="cart-count" id="cartCount">0</div>
+    </button>
+  </div>
+</nav>
+
+<!-- SIDEBAR OVERLAY -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<!-- SIDEBAR -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">Fouri<span style="color:var(--netflix)">Card</span></div>
+    <button class="sidebar-close" onclick="closeSidebar()">✕</button>
+  </div>
+
+  <div class="sidebar-user">
+    <div class="sidebar-avatar">🛍️</div>
+    <div>
+      <div class="sidebar-welcome">مرحباً بك!</div>
+      <div class="sidebar-sub">متجر البطاقات الرقمية</div>
+    </div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <a class="sidebar-link" onclick="showPage('home');closeSidebar()">
+      <span class="sidebar-icon">🏠</span> الرئيسية
+    </a>
+    <a class="sidebar-link" onclick="showPage('cart');closeSidebar()">
+      <span class="sidebar-icon">🛒</span> سلة التسوق
+      <div class="cart-count sidebar-cart-count" id="sidebarCartCount" style="position:static;margin-right:auto;border:none;">0</div>
+    </a>
+    <a class="sidebar-link" onclick="showPage('favorites');closeSidebar()">
+      <span class="sidebar-icon">❤️</span> المفضلة
+    </a>
+  </nav>
+
+  <div class="sidebar-divider"></div>
+  <div class="sidebar-section-title">تصفح حسب الفئة</div>
+
+  <nav class="sidebar-nav">
+    <a class="sidebar-link" onclick="filterFromSidebar('all')">
+      <span class="sidebar-icon">✨</span> جميع المنتجات
+    </a>
+    <a class="sidebar-link" onclick="filterFromSidebar('netflix')">
+      <span class="sidebar-icon" style="color:#E50914">🎬</span> نتفليكس
+    </a>
+    <a class="sidebar-link" onclick="filterFromSidebar('shahid')">
+      <span class="sidebar-icon" style="color:#00A9E0">📺</span> شاهد VIP
+    </a>
+    <a class="sidebar-link" onclick="filterFromSidebar('thamanya')">
+      <span class="sidebar-icon">⚽</span> ثمانية
+    </a>
+    <a class="sidebar-link" onclick="filterFromSidebar('osn')">
+      <span class="sidebar-icon" style="color:#FFD700">🎥</span> OSN+
+    </a>
+    <a class="sidebar-link" onclick="filterFromSidebar('youtube')">
+      <span class="sidebar-icon" style="color:#FF0000">▶️</span> يوتيوب بريميوم
+    </a>
+    <a class="sidebar-link" onclick="filterFromSidebar('amazon')">
+      <span class="sidebar-icon" style="color:#FF9900">📦</span> أمازون برايم
+    </a>
+  </nav>
+
+  <div class="sidebar-divider"></div>
+
+  <nav class="sidebar-nav">
+    <a class="sidebar-link" onclick="document.querySelector('.about-section')?.scrollIntoView({behavior:'smooth'});showPage('home');closeSidebar()">
+      <span class="sidebar-icon">👋</span> من نحن
+    </a>
+    <a class="sidebar-link" onclick="document.querySelector('.faq-section')?.scrollIntoView({behavior:'smooth'});showPage('home');closeSidebar()">
+      <span class="sidebar-icon">❓</span> أسئلة شائعة
+    </a>
+    <a class="sidebar-link" href="https://wa.me/966551856922" target="_blank" onclick="closeSidebar()">
+      <span class="sidebar-icon" style="color:#25D366">💬</span> تواصل معنا
+    </a>
+  </nav>
+
+  <div class="sidebar-footer">
+    <div>© 2025 FouriCard</div>
+    <div>🇸🇦 متجر سعودي موثوق</div>
+  </div>
+</div>
+
+<!-- ===== HOME PAGE ===== -->
+<div id="page-home" class="page active">
+  <section class="hero">
+    <div id="typewriterText">
+      <span id="twFouri" style="color:white"></span><span id="twCard" style="color:#E50914"></span><span id="twCursor" style="color:#E50914;animation:blink 0.7s infinite">|</span>
+    </div>
+    <div class="hero-tag">✦ بطاقات رقمية أصلية ١٠٠٪</div>
+    <h1>بطاقاتك <span class="highlight">الرقمية</span><br>بين يديك فوراً</h1>
+    <p>اشترِ اشتراكات نتفليكس، شاهد، وثمانية بأسعار تنافسية واستلام فوري</p>
+    <div class="coupon-chip" onclick="navigator.clipboard.writeText('FR10');showToast('✅ تم نسخ كود الخصم!')">
+      <div>
+        <div class="coupon-chip-label">🎁 كود خصم 10% للعملاء الجدد</div>
+        <div class="coupon-chip-code">FR10</div>
+      </div>
+      <div class="coupon-chip-btn">📋 انسخ</div>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num">🔥</div><div class="stat-label">متجر موثوق</div></div>
+      <div class="stat"><div class="stat-num" style="color:var(--spotify)">⚡ فوري</div><div class="stat-label">وقت الاستلام</div></div>
+      <div class="stat"><div class="stat-num">١٠٠٪</div><div class="stat-label">بطاقات أصلية</div></div>
+    </div>
+  </section>
+
+  <div class="filters">
+    <button class="filter-btn active" onclick="filterProducts('all',this)">الكل</button>
+    <button class="filter-btn" onclick="filterProducts('netflix',this)">🎬 نتفليكس</button>
+    <button class="filter-btn" onclick="filterProducts('shahid',this)">📺 شاهد</button>
+    <button class="filter-btn" onclick="filterProducts('thamanya',this)">⚽ ثمانية</button>
+    <button class="filter-btn" onclick="filterProducts('osn',this)">🎥 OSN+</button>
+    <button class="filter-btn" onclick="filterProducts('youtube',this)">▶️ يوتيوب</button>
+    <button class="filter-btn" onclick="filterProducts('amazon',this)">📦 أمازون</button>
+  </div>
+
+  <div class="section-title"><h2>جميع المنتجات</h2><div class="title-line"></div></div>
+  <div class="products" id="productsGrid"></div>
+
+  <div class="about-section">
+    <h2>من نحن 👋</h2>
+    <p>FouriCard متجر سعودي متخصص في بيع الاشتراكات والبطاقات الرقمية بأسعار تنافسية. نضمن لك استلام كودك فوراً بعد تأكيد الدفع، مع دعم مستمر على واتساب.</p>
+    <div class="about-badges">
+      <span class="about-badge">🇸🇦 متجر سعودي</span>
+      <span class="about-badge">⚡ استلام فوري</span>
+      <span class="about-badge">🔒 بطاقات أصلية</span>
+      <span class="about-badge">🎧 دعم 24/7</span>
+    </div>
+  </div>
+
+  <div class="section-title"><h2>التعليقات 💬</h2><div class="title-line"></div></div>
+  <div class="comments-section">
+    <div class="comment-form">
+      <h3>✍️ اترك تعليقك</h3>
+      <div class="comment-inputs">
+        <input type="text" class="form-input" id="commentName" placeholder="اسمك">
+        <select class="form-input" id="commentProduct" style="background:var(--dark);border:1px solid var(--border);color:var(--white);padding:11px 14px;border-radius:10px;font-family:'Cairo',sans-serif;font-size:0.88rem;outline:none;width:100%;cursor:pointer">
+          <option value="">المنتج (اختياري)</option>
+          <option value="نتفليكس">نتفليكس</option>
+          <option value="شاهد">شاهد VIP</option>
+          <option value="ثمانية">ثمانية كورة</option>
+          <option value="OSN+">OSN+</option>
+          <option value="يوتيوب بريميوم">يوتيوب بريميوم</option>
+          <option value="أمازون برايم">أمازون برايم</option>
+        </select>
+      </div>
+      <textarea class="comment-textarea" id="commentText" placeholder="شاركنا تجربتك..."></textarea>
+      <div class="comment-stars-select" id="starsSelect">
+        <button class="star-btn" onclick="setStars(1)" data-star="1">★</button>
+        <button class="star-btn" onclick="setStars(2)" data-star="2">★</button>
+        <button class="star-btn" onclick="setStars(3)" data-star="3">★</button>
+        <button class="star-btn" onclick="setStars(4)" data-star="4">★</button>
+        <button class="star-btn" onclick="setStars(5)" data-star="5">★</button>
+      </div>
+      <button class="submit-comment-btn" onclick="submitComment()">إرسال التعليق ←</button>
+    </div>
+    <div class="comments-list" id="commentsList"></div>
+  </div>
+
+  <div class="section-title"><h2>أسئلة شائعة ❓</h2><div class="title-line"></div></div>
+  <div class="faq-section">
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><span>كيف أستلم الكود بعد الشراء؟</span><span class="faq-icon">+</span></div><div class="faq-a">بعد إتمام الدفع وإرسال الإيصال على واتساب، نرسل لك الكود فوراً خلال دقائق على رقم الواتساب.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><span>ما هي طرق الدفع المتاحة؟</span><span class="faq-icon">+</span></div><div class="faq-a">نقبل الدفع عبر STC Pay والتحويل البنكي لجميع البنوك السعودية.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><span>هل البطاقات أصلية ومضمونة؟</span><span class="faq-icon">+</span></div><div class="faq-a">نعم، جميع البطاقات والاشتراكات أصلية 100% ومضمونة. في حال وجود أي مشكلة نتواصل معك فوراً لحلها.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><span>كم يستغرق استلام الكود؟</span><span class="faq-icon">+</span></div><div class="faq-a">فوري! بمجرد تأكيد الدفع وإرسال الإيصال، تستلم كودك خلال دقائق على واتساب.</div></div>
+    <div class="faq-item"><div class="faq-q" onclick="toggleFaq(this)"><span>ماذا أفعل إذا لم يشتغل الكود؟</span><span class="faq-icon">+</span></div><div class="faq-a">تواصل معنا فوراً على واتساب وسنحل المشكلة في أسرع وقت، ضمان كامل على جميع منتجاتنا.</div></div>
+  </div>
+
+  <div class="trust-strip">
+    <div class="trust-item"><div class="trust-icon">⚡</div><div class="trust-text"><strong>استلام فوري</strong><span>خلال دقائق بعد التأكيد</span></div></div>
+    <div class="trust-item"><div class="trust-icon">🔒</div><div class="trust-text"><strong>بطاقات أصلية</strong><span>مضمونة ١٠٠٪</span></div></div>
+    <div class="trust-item"><div class="trust-icon">💳</div><div class="trust-text"><strong>دفع آمن</strong><span>STC Pay وتحويل بنكي</span></div></div>
+    <div class="trust-item"><div class="trust-icon">🎧</div><div class="trust-text"><strong>دعم مستمر</strong><span>واتساب للاستفسارات</span></div></div>
+  </div>
+</div>
+
+<!-- ===== PRODUCT PAGE ===== -->
+<div id="page-product" class="page">
+  <div class="product-page">
+    <button class="back-btn" onclick="showPage('home')">→ رجوع للمتجر</button>
+    <div class="product-detail">
+      <div class="product-visual" id="productVisual"></div>
+      <div class="product-info" id="productInfo"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== CART PAGE ===== -->
+<div id="page-cart" class="page">
+  <div class="cart-page">
+    <button class="back-btn" onclick="showPage('home')">→ رجوع للمتجر</button>
+    <h1>🛒 سلة التسوق</h1>
+    <div id="cartContent"></div>
+  </div>
+</div>
+
+<!-- ===== CHECKOUT PAGE ===== -->
+<div id="page-checkout" class="page">
+  <div class="checkout-page">
+    <button class="back-btn" onclick="showPage('cart')">→ رجوع للسلة</button>
+    <h1>💳 إتمام الطلب</h1>
+    <div class="checkout-section">
+      <h3>📦 ملخص الطلب</h3>
+      <div class="order-summary" id="checkoutSummary"></div>
+    </div>
+    <div class="checkout-section">
+      <h3>👤 بياناتك</h3>
+      <div class="form-group">
+        <label class="form-label">الاسم</label>
+        <input type="text" class="form-input" id="customerName" placeholder="اكتب اسمك">
+      </div>
+      <div class="form-group">
+        <label class="form-label">رقم الواتساب</label>
+        <input type="tel" class="form-input" id="customerPhone" placeholder="05XXXXXXXX">
+      </div>
+    </div>
+    <div class="checkout-section">
+      <h3>💳 طريقة الدفع</h3>
+      <div class="payment-options">
+        <div class="payment-option" onclick="selectPayment('stc')">
+          <input type="radio" name="payment" value="stc">
+          <div class="payment-icon">📱</div>
+          <div class="payment-info"><strong>STC Pay</strong><span>تحويل فوري عبر STC Pay</span></div>
+        </div>
+        <div class="payment-detail" id="stc-detail">
+          <p>حوّل المبلغ على رقم STC Pay:</p>
+          <div class="payment-number">أضف رقمك هنا</div>
+          <p style="margin-top:8px;font-size:0.78rem;">ثم أرسل إيصال التحويل على واتساب</p>
+        </div>
+        <div class="payment-option" onclick="selectPayment('bank')">
+          <input type="radio" name="payment" value="bank">
+          <div class="payment-icon">🏦</div>
+          <div class="payment-info"><strong>تحويل بنكي</strong><span>تحويل عبر أي بنك سعودي</span></div>
+        </div>
+        <div class="payment-detail" id="bank-detail">
+          <p>حوّل المبلغ على الحساب البنكي:</p>
+          <div class="payment-number">أضف رقم الآيبان هنا</div>
+          <p style="margin-top:8px;font-size:0.78rem;">ثم أرسل إيصال التحويل على واتساب</p>
+        </div>
+      </div>
+    </div>
+    <button class="place-order-btn" onclick="placeOrder()">✅ تأكيد الطلب وإرسال على واتساب</button>
+  </div>
+</div>
+
+<!-- ===== SUCCESS PAGE ===== -->
+<div id="page-success" class="page">
+  <div class="success-page">
+    <div class="success-icon">🎉</div>
+    <h1>تم استلام طلبك!</h1>
+    <p>شكراً لك! طلبك وصلنا وسنتواصل معك فوراً على واتساب لإتمام الدفع وإرسال الكود.</p>
+    <div class="success-steps">
+      <div class="success-step"><div class="step-num">1</div><div class="step-text"><strong>حوّل المبلغ</strong><span>حوّل على STC Pay أو الحساب البنكي</span></div></div>
+      <div class="success-step"><div class="step-num">2</div><div class="step-text"><strong>أرسل الإيصال</strong><span>أرسل صورة الإيصال على واتساب</span></div></div>
+      <div class="success-step"><div class="step-num">3</div><div class="step-text"><strong>استلم الكود</strong><span>نرسل لك الكود فوراً بعد التأكيد</span></div></div>
+    </div>
+    <button class="whatsapp-order-btn" id="whatsappOrderBtn">📱 أرسل الطلب على واتساب</button><br>
+    <button class="home-btn" onclick="showPage('home'); cart=[];">العودة للمتجر</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ===== FAVORITES PAGE ===== -->
+<div id="page-favorites" class="page">
+  <div class="cart-page">
+    <button class="back-btn" onclick="showPage('home')">← العودة للمتجر</button>
+    <h1>❤️ المفضلة</h1>
+    <div id="favsContent"></div>
+  </div>
+</div>
+
+<!-- GIFT MODAL -->
+<div class="modal-overlay" id="giftModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">🎁 إرسال هدية</div>
+      <button class="modal-close" onclick="closeGiftModal()">✕</button>
+    </div>
+    <div class="modal-product-info" id="giftProductInfo"></div>
+    <div class="modal-note">سيتم إرسال رسالة واتساپ إليك تحتوي على تفاصيل الهدية وبيانات المُهدى إليه، وبعد تأكيد الدفع نرسل الكود مباشرة للشخص الثاني 🎉</div>
+    <div class="modal-field"><label class="modal-label">اسمك أنت (المُرسِل)</label><input class="modal-input" id="senderName" placeholder="مثال: محمد"></div>
+    <div class="modal-field"><label class="modal-label">اسم الشخص المُهدى إليه</label><input class="modal-input" id="recipientName" placeholder="مثال: أحمد"></div>
+    <div class="modal-field"><label class="modal-label">رقم واتساپ المُهدى إليه</label><input class="modal-input" id="recipientPhone" placeholder="05xxxxxxxx" type="tel" dir="ltr"></div>
+    <div class="modal-field"><label class="modal-label">رسالة هدية (اختياري)</label><input class="modal-input" id="giftMessage" placeholder="بمناسبة عيد ميلادك 🎂"></div>
+    <button class="gift-send-btn" onclick="sendGiftWhatsapp()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      إرسال طلب الهدية عبر واتساپ
+    </button>
+  </div>
+</div>
+
+<!-- LIVE NOTIFICATION -->
+<div class="live-notif" id="liveNotif">
+  <div class="live-notif-icon" id="liveNotifIcon">🎬</div>
+  <div class="live-notif-text" id="liveNotifText">شخص ما اشترى نتفليكس</div>
+  <div class="live-notif-time" id="liveNotifTime">منذ دقيقة</div>
+</div>
+
+<!-- FLOATING WHATSAPP -->
+<div class="wa-tooltip">💬 تواصل معنا</div>
+<a href="https://wa.me/966551856922" target="_blank" class="wa-float">📱</a>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <h3><span style="color:white">Fouri</span><span style="color:#E50914">Card</span></h3>
+      <p>متجرك الموثوق للاشتراكات الرقمية بأسعار تنافسية واستلام فوري. بطاقات أصلية 100% مضمونة.</p>
+      <div class="social-links">
+        <a href="https://instagram.com/fouricard" target="_blank" class="social-btn social-instagram" title="انستقرام">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+        </a>
+        <a href="https://x.com/fouricard" target="_blank" class="social-btn social-twitter" title="X">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+        </a>
+        <a href="https://wa.me/966551856922" target="_blank" class="social-btn social-whatsapp" title="واتساب">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        </a>
+      </div>
+    </div>
+    <div class="footer-col">
+      <h4>روابط سريعة</h4>
+      <a onclick="showPage('home')">🏠 الرئيسية</a>
+      <a onclick="showPage('cart')">🛒 سلة التسوق</a>
+      <a onclick="document.querySelector('.about-section').scrollIntoView({behavior:'smooth'})">👋 من نحن</a>
+      <a onclick="document.querySelector('.faq-section').scrollIntoView({behavior:'smooth'})">❓ أسئلة شائعة</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="footer-copy">© 2025 <span>FouriCard</span> — جميع الحقوق محفوظة</div>
+    <div class="footer-copy">🔒 بطاقات أصلية &nbsp;|&nbsp; ⚡ استلام فوري &nbsp;|&nbsp; 🇸🇦 متجر سعودي</div>
+  </div>
+</div>
+
+<script>
+// ===== SIDEBAR =====
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  const btn = document.getElementById('hamburgerBtn');
+  const isOpen = sidebar.classList.contains('open');
+  if (isOpen) {
+    closeSidebar();
+  } else {
+    sidebar.classList.add('open');
+    overlay.classList.add('show');
+    btn.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+}
+
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+  document.getElementById('hamburgerBtn').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function filterFromSidebar(cat) {
+  showPage('home');
+  setTimeout(() => {
+    const btns = document.querySelectorAll('.filter-btn');
+    const cats = ['all','netflix','shahid','thamanya','osn','youtube','amazon'];
+    const idx = cats.indexOf(cat);
+    if(idx >= 0 && btns[idx]) {
+      filterProducts(cat, btns[idx]);
+      btns[idx].scrollIntoView({behavior:'smooth', block:'nearest'});
+    }
+  }, 100);
+  closeSidebar();
+}
+
+// ===== DATA =====
+// المنتجات الافتراضية (fallback إذا ما في شيء في الأدمن)
+const DEFAULT_PRODUCTS = [
+  { id:1, cat:'netflix', brand:'NETFLIX', name:'اشتراك نتفليكس', desc:'استمتع بأفضل الأفلام والمسلسلات العالمية بجودة 4K على جميع أجهزتك بدون انقطاع.', price:15, img:'data:image/webp;base64,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', color:'#E50914', bg:'#1a0000', sold:128, features:['صالحة لتجديد الاشتراك','تعمل على جميع الأجهزة','استلام فوري بعد الدفع'], badge:'badge-hot', badgeText:'🔥 الأكثر طلباً' },
+  { id:3, cat:'shahid', brand:'SHAHID', name:'اشتراك شاهد VIP', desc:'استمتع بأحدث المسلسلات العربية والمحتوى الحصري من MBC Group وبث المباريات.', price:15, img:'data:image/webp;base64,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', color:'#00A9E0', bg:'#001a26', sold:64, features:['محتوى عربي حصري','بث مباشر للمباريات','استلام فوري بعد الدفع'], badge:'badge-new', badgeText:'✨ جديد' },
+  { id:6, cat:'thamanya', brand:'ثمانية', name:'اشتراك ثمانية كورة', desc:'تابع أحدث أخبار كرة القدم والتحليلات والبودكاست الرياضي مع منصة ثمانية المتخصصة.', price:15, img:'data:image/webp;base64,UklGRs4DAABXRUJQVlA4IMIDAACwIgCdASoGAQ4BPp1Oo00lpKMiI7XYALATiWlu4XKRG+xI/w2h8evOcR+8f4nhBlA8DNIFOtf0Xis+mP2Q+A/os/uB7Gf6wBVdkFUuqnxQc2HaapdVPig5sO01S6qfFBzYdpql1U+KDmw48u79mw7TVLqlAEowB3HXL9hKDmw7TVLfZMf+qYM71bCapdVPigTb5NXmeL6F1T36iOzC6qfFBsk74yf1tZgvdPmvLMYxCh+0YfYGU1UwdoHoeE4ZVF8ldWTgCS6xyDFw7TVLfTDGM7c6w6r61VutWoJUO3GmqXVT4QvDTALRz1t6TaEtS9OVvNSDmw7TVJnvERzKaqfFBzYdpql1U+KDmw7TVLqp8UHNh2mqXVT4oObDtNS4AP7+sMAAAMoJTvPkecwzmQspsz5ropj3AMqE2UKsRapzfJepYpISDm0NPrZwz5h0nEqKMAxTOSZJL9yq4Qi3gHfoSzYTy0SDhNYlIWV/MS1X8bAdX9xKyPg4uoYOlwFy+OcYqXwko3AKKbYxb6vxiZuArVz/xhABcitqYcEcy2z+FUZQkumfc1fEE8/vFLqT+++RRgHNTyqKeNgW5GvgBSo/rjE6GMpjZglo6r5yKz3gYpOY2N+naxMUxvvzqPk7gNReJCA4+gnxPzeMfYNUv5VlDspCSn+BMNo7nDJqbh8kuBgfIAETr9TLntXXk0Fd2IsrS4GWVVVXsrykzeExvsNnAAlDnv64Y/GXYlSwGTe43/61/8vz0vUxRZubpLD7RQGeAaUncs/HPniRQRGVyGFcOmpgHpk18Dp9jzSdiRRF1VCNy+65zjFyb6cfWmrzUfePCwBcWEs46KsmxOAnM9yNpF3itN2DU+xCqSXCNKMBz7vQAesDpswT5BW4BkqO2VS947gy/ALPmczQ3uwVPN+835+9TLuSv0PQDT1eO6HbMa7mAWIZQLaOdByzPjVHA1yzpFdbpYbC71Y8/lfgS8Bt1dVsqUfq+657wAqwpCxXVwcE+0f7noXPO2tyXccjrCrnsM6djeGrZr+30AINgDu4d+vCmshdREkE0H8k2bI66zcHo9lHOSpLpVK1LbDpPFVS/LJ6OeZhl8+0hTae5rGlk/zvGdtkszgY5Q6gRb02NITCO9cZgNNzMNY9NWiekj3cMYMxGJYQBZIsx6cMHCTcCLNpmo+ktQkoJx7BjSCQcEPxe0rE04aKGZMCmi4zcnniQVepNLqR0Dw+KvZp60mV92JNGYG6qfwblZz6SVWSeG0exommiw7z5HUibAAAAAAAAA==', color:'#000000', bg:'#f5f5f0', sold:31, features:['تغطية كروية شاملة','بودكاست وتحليلات حصرية','استلام فوري بعد الدفع'], badge:null },
+  { id:7, cat:'osn', brand:'OSN+', name:'اشتراك OSN+', desc:'استمتع بأحدث الأفلام والمسلسلات العالمية من HBO وWarner Bros وDisney+ حصرياً.', price:15, img:'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiMwMDAwMDAiLz48dGV4dCB4PSI1MCUiIHk9IjQ1JSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsIEJsYWNrIiBmb250LXNpemU9IjU2IiBmb250LXdlaWdodD0iOTAwIiBmaWxsPSJ3aGl0ZSI+T1NOPC90ZXh0Pjx0ZXh0IHg9IjUwJSIgeT0iNzUlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwgQmxhY2siIGZvbnQtc2l6ZT0iMzYiIGZvbnQtd2VpZ2h0PSI5MDAiIGZpbGw9IiNGRkQ3MDAiPis8L3RleHQ+PC9zdmc+', color:'#FFD700', bg:'#000000', sold:22, features:['محتوى HBO حصري','أفلام ومسلسلات عالمية','استلام فوري بعد الدفع'], badge:null },
+  { id:8, cat:'youtube', brand:'YouTube', name:'يوتيوب بريميوم', desc:'استمتع بيوتيوب بدون إعلانات، تشغيل في الخلفية، وتحميل الفيديوهات للمشاهدة أوفلاين.', price:15, img:'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiNGRjAwMDAiLz48cG9seWdvbiBwb2ludHM9Ijc1LDYwIDc1LDE0MCAxNDUsOTgiIGZpbGw9IndoaXRlIi8+PC9zdmc+', color:'#FF0000', bg:'#1a0000', sold:45, features:['بدون إعلانات نهائياً','تشغيل في الخلفية','تحميل للمشاهدة أوفلاين'], badge:'badge-best', badgeText:'⭐ قيمة عالية' },
+  { id:9, cat:'amazon', brand:'Amazon Prime', name:'اشتراك أمازون برايم', desc:'استمتع بأفلام ومسلسلات أمازون أوريجينال وشحن مجاني وعروض حصرية مع Prime Video.', price:15, img:'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgdmlld0JveD0iMCAwIDIwMCAyMDAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjIwMCIgaGVpZ2h0PSIyMDAiIGZpbGw9IiMwMDQzOEEiLz48dGV4dCB4PSI1MCUiIHk9IjQwJSIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZm9udC1mYW1pbHk9IkFyaWFsIEJsYWNrIiBmb250LXNpemU9IjMwIiBmb250LXdlaWdodD0iOTAwIiBmaWxsPSJ3aGl0ZSI+cHJpbWU8L3RleHQ+PHRleHQgeD0iNTAlIiB5PSI3MCUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZvbnQtZmFtaWx5PSJBcmlhbCBCbGFjayIgZm9udC1zaXplPSIyMiIgZm9udC13ZWlnaHQ9IjkwMCIgZmlsbD0iI0ZGOTkwMCI+dmlkZW88L3RleHQ+PC9zdmc+', color:'#FF9900', bg:'#00438A', sold:18, features:['Prime Video حصري','أمازون أوريجينال','استلام فوري بعد الدفع'], badge:null },
+];
+
+// تحميل المنتجات: من الأدمن (localStorage) أو الافتراضية
+let products = (function() {
+  try {
+    const saved = localStorage.getItem('fc_products');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed && parsed.length > 0) return parsed.filter(p => p.visible !== false);
+    }
+  } catch(e) {}
+  return DEFAULT_PRODUCTS;
+})();
+
+let cart = [];
+let currentProduct = null;
+let selectedPayment = null;
+let orderDetails = '';
+let favorites = [];
+
+// ===== FAVORITES =====
+function toggleFavorite(id) {
+  const idx = favorites.indexOf(id);
+  if (idx === -1) { favorites.push(id); showToast('❤️ تمت الإضافة للمفضلة!'); }
+  else { favorites.splice(idx, 1); showToast('💔 تمت الإزالة من المفضلة'); }
+  updateFavCount();
+  const btn = document.getElementById('fav-' + id);
+  if (btn) { btn.classList.toggle('active', favorites.includes(id)); btn.textContent = favorites.includes(id) ? '❤️' : '🤍'; }
+}
+
+function updateFavCount() {
+  const badge = document.getElementById('favCount');
+  if (!badge) return;
+  badge.textContent = favorites.length;
+  badge.classList.toggle('show', favorites.length > 0);
+}
+
+function renderFavorites() {
+  const el = document.getElementById('favsContent');
+  if (!el) return;
+  const favProducts = products.filter(p => favorites.includes(p.id));
+  if (favProducts.length === 0) {
+    el.innerHTML = `<div class="favs-empty"><div class="empty-icon">🤍</div><p>ما في منتجات في المفضلة بعد</p><button class="checkout-btn" onclick="showPage('home')" style="max-width:200px;margin:0 auto">تصفح المنتجات</button></div>`;
+    return;
+  }
+  el.innerHTML = `<div class="products" style="padding:0 0 40px">${favProducts.map(p => `
+    <div class="product-card" data-cat="${p.cat}">
+      <div class="card-header">
+        <div class="brand-logo" style="background:${p.bg};padding:0;overflow:hidden"><img src="${p.img}" style="width:100%;height:100%;object-fit:cover" alt="${p.brand}"></div>
+        <div class="card-meta"><div class="card-brand">${p.brand}</div><div class="card-name">${p.name}</div></div>
+        <button class="fav-btn active" onclick="toggleFavorite(${p.id});renderFavorites();" title="إزالة">❤️</button>
+      </div>
+      <div class="card-body">
+        <p class="card-desc">${p.desc}</p>
+        <div class="card-features">${p.features.map(f => `<div class="feature"><div class="feature-dot" style="background:${p.color}"></div>${f}</div>`).join('')}</div>
+      </div>
+      <div class="card-footer">
+        <div class="sold-badge"><div class="sold-dot"></div>${p.sold}+ عملية شراء</div>
+        <button class="buy-btn" style="background:#E50914;color:white;width:100%;margin-top:10px" onclick="openProduct(${p.id})">عرض الخطط والأسعار ←</button>
+      </div>
+    </div>
+  `).join('')}</div>`;
+}
+
+// ===== RENDER PRODUCTS =====
+function renderProducts(filter='all') {
+  const grid = document.getElementById('productsGrid');
+  const filtered = filter === 'all' ? products : products.filter(p => p.cat === filter);
+  grid.innerHTML = filtered.map((p,i) => `
+    <div class="product-card" data-cat="${p.cat}" style="animation-delay:${i*0.05}s">
+      <div class="card-header">
+        <div class="brand-logo" style="background:${p.bg};padding:0;overflow:hidden"><img src="${p.img}" style="width:100%;height:100%;object-fit:cover" alt="${p.brand}"></div>
+        <div class="card-meta"><div class="card-brand">${p.brand}</div><div class="card-name">${p.name}</div></div>
+        ${p.badge ? `<span class="badge ${p.badge}">${p.badgeText}</span>` : ''}
+        <button class="fav-btn ${favorites.includes(p.id) ? 'active' : ''}" onclick="event.stopPropagation();toggleFavorite(${p.id})" id="fav-${p.id}" title="المفضلة">
+          ${favorites.includes(p.id) ? '❤️' : '🤍'}
+        </button>
+      </div>
+      <div class="card-body">
+        <p class="card-desc">${p.desc}</p>
+        <div class="card-features">
+          ${p.features.map(f => `<div class="feature"><div class="feature-dot" style="background:${p.color}"></div>${f}</div>`).join('')}
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="sold-badge"><div class="sold-dot"></div>${p.sold}+ عملية شراء</div>
+        <button class="buy-btn" style="background:#E50914;color:white;width:100%;margin-top:10px" onclick="openProduct(${p.id})">عرض الخطط والأسعار ←</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ===== PRODUCT PLANS =====
+const productPlans = {
+  1: { title: 'اختر خطة نتفليكس', plans: [
+    { name: 'الأساسية مع إعلانات', price: 23, desc: 'جودة HD - شاشة واحدة' },
+    { name: 'الأساسية', price: 35, desc: 'جودة HD - شاشة واحدة - بدون إعلانات' },
+    { name: 'الاستاندارد', price: 49, desc: 'جودة Full HD - شاشتان' },
+    { name: 'البريميوم', price: 65, desc: 'جودة 4K Ultra HD - 4 شاشات' },
+  ]},
+  3: { title: 'اختر خطة شاهد', plans: [
+    { name: 'شاهد VIP شهري', price: 29, desc: 'جميع المحتوى + بث مباشر' },
+    { name: 'شاهد VIP ربع سنوي', price: 79, desc: 'توفير 15% - 3 أشهر' },
+    { name: 'شاهد VIP نصف سنوي', price: 139, desc: 'توفير 20% - 6 أشهر' },
+    { name: 'شاهد VIP سنوي', price: 239, desc: 'توفير 31% - سنة كاملة' },
+  ]},
+  9: { title: 'اختر خطة أمازون برايم', plans: [
+    { name: 'شهري', price: 25, desc: 'Prime Video + مزايا Prime' },
+    { name: 'ربع سنوي', price: 65, desc: 'توفير 13% - 3 أشهر' },
+    { name: 'سنوي', price: 219, desc: 'توفير 27% - سنة كاملة' },
+  ]},
+  7: { title: 'اختر خطة OSN+', plans: [
+    { name: 'شهري', price: 39, desc: 'جميع المحتوى + HBO' },
+    { name: 'ربع سنوي', price: 99, desc: 'توفير 15% - 3 أشهر' },
+    { name: 'نصف سنوي', price: 179, desc: 'توفير 23% - 6 أشهر' },
+    { name: 'سنوي', price: 299, desc: 'توفير 36% - سنة كاملة' },
+  ]},
+  8: { title: 'اختر خطة يوتيوب بريميوم', plans: [
+    { name: 'شهري', price: 22, desc: 'بدون إعلانات + تشغيل خلفية' },
+    { name: 'ربع سنوي', price: 59, desc: 'توفير 10% - 3 أشهر' },
+    { name: 'سنوي', price: 199, desc: 'توفير 25% - سنة كاملة' },
+  ]},
+  6: { title: 'اختر خطة ثمانية', plans: [
+    { name: 'اشتراك شهري', price: 19, desc: 'جميع المحتوى الرياضي' },
+    { name: 'اشتراك سنوي', price: 149, desc: 'توفير 35% - سنة كاملة' },
+  ]}
+};
+
+let selectedPlan = null;
+
+function openProduct(id) {
+  currentProduct = products.find(p => p.id === id);
+  const p = currentProduct;
+  const plans = productPlans[id];
+  selectedPlan = null;
+
+  document.getElementById('productVisual').innerHTML = `
+    <div class="big-logo" style="background:${p.bg};padding:0;overflow:hidden"><img src="${p.img}" style="width:100%;height:100%;object-fit:cover" alt="${p.brand}"></div>
+    <h2 style="color:${p.color}">${p.brand}</h2>
+    <p>${p.name}</p>
+  `;
+
+  const plansHTML = plans ? `
+    <div class="features-list">
+      <h3>${plans.title}:</h3>
+      ${id === 1 ? `<div style="overflow-x:auto;margin-bottom:8px">
+        <table class="compare-table">
+          <tr><th>الخطة</th><th>الإعلانات</th><th>الجودة</th><th>الشاشات</th><th>السعر</th></tr>
+          <tr><td>مع إعلانات</td><td class="compare-x">✗</td><td>HD</td><td>1</td><td>23 ر.س</td></tr>
+          <tr><td>أساسية</td><td class="compare-check">✓</td><td>HD</td><td>1</td><td>35 ر.س</td></tr>
+          <tr><td>استاندارد</td><td class="compare-check">✓</td><td>Full HD</td><td>2</td><td>49 ر.س</td></tr>
+          <tr><td class="best">بريميوم ⭐</td><td class="compare-check">✓</td><td class="best">4K</td><td class="best">4</td><td class="best">65 ر.س</td></tr>
+        </table>
+      </div>` : ''}
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+        ${plans.plans.map((plan, i) => `
+          <div class="plan-option" id="plan-${i}" onclick="selectPlan(${i}, ${plan.price}, '${plan.name}')">
+            <div style="font-family:'Tajawal',sans-serif;font-size:1.15rem;font-weight:900;color:#E50914">${plan.price} ر.س</div>
+            <div style="text-align:right">
+              <div style="font-weight:700;font-size:0.92rem">${plan.name}</div>
+              <div style="color:var(--gray);font-size:0.78rem">${plan.desc}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  ` : `
+    <div class="features-list">
+      <h3>ما يشمله المنتج:</h3>
+      ${p.features.map(f => `<div class="feat-item"><div class="feat-check" style="background:${p.color};color:white">✓</div>${f}</div>`).join('')}
+    </div>
+  `;
+
+  document.getElementById('productInfo').innerHTML = `
+    <h1>${p.name}</h1>
+    <p class="desc">${p.desc}</p>
+    ${plansHTML}
+    <div class="price-box">
+      <div class="price-label" style="font-size:0.78rem;color:var(--gray)">السعر المختار</div>
+      <div class="price-big" id="selectedPrice" style="color:#E50914">اختر خطة</div>
+      <div class="price-note">استلام فوري بعد تأكيد الدفع</div>
+      <div class="qty-selector">
+        <span class="qty-label">الكمية:</span>
+        <div class="qty-controls">
+          <button class="qty-btn" onclick="changeQty(-1)">-</button>
+          <span class="qty-num" id="qtyNum">1</span>
+          <button class="qty-btn" onclick="changeQty(1)">+</button>
+        </div>
+      </div>
+      <button class="add-cart-btn" style="background:#E50914;color:white" onclick="addToCartWithQty()">أضف للسلة 🛒</button>
+      <button class="gift-btn" onclick="openGiftModal()">🎁 أرسلها هدية لشخص آخر</button>
+    </div>
+  `;
+  showPage('product');
+}
+
+function selectPlan(index, price, name) {
+  selectedPlan = { index, price, name };
+  currentProduct = {...currentProduct, price, name: currentProduct.brand + ' - ' + name};
+  document.querySelectorAll('.plan-option').forEach((el, i) => {
+    el.style.borderColor = i === index ? currentProduct.color || '#E50914' : 'var(--border)';
+    el.style.background = i === index ? 'rgba(255,255,255,0.05)' : '';
+  });
+  document.getElementById('selectedPrice').textContent = price + ' ر.س';
+}
+
+let currentQty = 1;
+function changeQty(delta) {
+  currentQty = Math.max(1, currentQty + delta);
+  document.getElementById('qtyNum').textContent = currentQty;
+}
+
+function addToCartWithQty() {
+  if(!selectedPlan) { showToast('⚠️ اختر خطة أولاً'); return; }
+  const itemToAdd = {...currentProduct, price: selectedPlan.price, name: currentProduct.brand + ' - ' + selectedPlan.name, cartId: currentProduct.id + '-' + selectedPlan.name};
+  const existing = cart.find(i => i.cartId === itemToAdd.cartId);
+  if(existing) existing.qty += currentQty;
+  else cart.push({...itemToAdd, qty: currentQty});
+  currentQty = 1;
+  showToast('✅ تمت الإضافة للسلة');
+  updateCartCount();
+}
+
+// ===== CART =====
+function updateCartCount() {
+  const total = cart.reduce((s,i) => s+i.qty, 0);
+  document.getElementById('cartCount').textContent = total;
+  const sc = document.getElementById('sidebarCartCount');
+  if(sc) sc.textContent = total;
+  try { sessionStorage.setItem('fouriCart', JSON.stringify(cart)); } catch(e) {}
+}
+
+function renderCart() {
+  const content = document.getElementById('cartContent');
+  if(cart.length === 0) {
+    content.innerHTML = `<div class="cart-empty"><div class="empty-icon">🛒</div><p>سلتك فارغة!</p><button class="checkout-btn" onclick="showPage('home')" style="max-width:200px;margin:0 auto">تسوق الآن</button></div>`;
+    return;
+  }
+  const total = cart.reduce((s,i) => s+i.price*i.qty, 0);
+  content.innerHTML = `
+    <div class="cart-items">
+      ${cart.map(item => `
+        <div class="cart-item">
+          <div class="cart-item-top">
+            <div class="cart-item-logo" style="background:${item.bg};padding:0"><img src="${item.img}" style="width:100%;height:100%;object-fit:cover" alt="${item.brand}"></div>
+            <div class="cart-item-info"><div class="cart-item-name">${item.name}</div><div class="cart-item-price">${item.price} ر.س للوحدة</div></div>
+          </div>
+          <div class="cart-item-bottom">
+            <button class="remove-btn" onclick="removeFromCart('${item.cartId}')">🗑️</button>
+            <div class="cart-item-qty">
+              <button class="qty-btn" onclick="updateQty('${item.cartId}',-1)">-</button>
+              <span class="qty-num">${item.qty}</span>
+              <button class="qty-btn" onclick="updateQty('${item.cartId}',1)">+</button>
+            </div>
+            <div class="cart-item-total">${item.price * item.qty} ر.س</div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="cart-summary">
+      ${cart.map(i => `<div class="summary-row"><span>${i.price * i.qty} ر.س</span><span>${i.name} ×${i.qty}</span></div>`).join('')}
+      ${appliedDiscount > 0 ? `<div class="discount-row"><span>- ${Math.round(total * appliedDiscount / 100)} ر.س</span><span>🎁 خصم ${appliedDiscount}%</span></div>` : ''}
+      <div class="summary-total">
+        <span class="total-price">${appliedDiscount > 0 ? Math.round(total * (1 - appliedDiscount/100)) : total} ر.س</span>
+        <span>المجموع الكلي</span>
+      </div>
+      ${appliedDiscount > 0 ? `
+        <div style="display:flex;align-items:center;justify-content:space-between;background:rgba(29,185,84,0.1);border:1px solid rgba(29,185,84,0.3);border-radius:10px;padding:9px 12px;margin-bottom:10px">
+          <button onclick="removeCoupon()" style="background:#E50914;border:none;color:white;cursor:pointer;font-family:Cairo,sans-serif;font-weight:700;font-size:0.76rem;padding:5px 9px;border-radius:6px;">✕ إزالة الكود</button>
+          <span style="color:#1DB954;font-size:0.85rem;font-weight:700">✅ خصم ${appliedDiscount}% مفعّل</span>
+        </div>
+      ` : `
+        <div class="coupon-input-row">
+          <button class="coupon-apply-btn" onclick="applyCoupon()">تطبيق</button>
+          <input class="coupon-input" id="couponInput" placeholder="كود الخصم">
+        </div>
+        <div class="coupon-msg" id="couponMsg" style="display:none"></div>
+      `}
+      <button class="checkout-btn" onclick="showPage('checkout'); renderCheckout()">متابعة للدفع ←</button>
+      <button class="continue-btn" onclick="showPage('home')">→ متابعة التسوق</button>
+    </div>
+  `;
+}
+
+function removeFromCart(cartId) { cart = cart.filter(i => i.cartId !== cartId); updateCartCount(); renderCart(); }
+function updateQty(cartId, delta) {
+  const item = cart.find(i => i.cartId === cartId);
+  if(item) { item.qty += delta; if(item.qty <= 0) cart = cart.filter(i => i.cartId !== cartId); }
+  updateCartCount(); renderCart();
+}
+
+// ===== CHECKOUT =====
+function renderCheckout() {
+  const subtotal = cart.reduce((s,i) => s+i.price*i.qty, 0);
+  const discount = appliedDiscount > 0 ? Math.round(subtotal * appliedDiscount / 100) : 0;
+  const total = subtotal - discount;
+  document.getElementById('checkoutSummary').innerHTML = `
+    ${cart.map(i => `<div class="order-summary-item"><span>${i.price*i.qty} ر.س</span><span>${i.name} ×${i.qty}</span></div>`).join('')}
+    ${discount > 0 ? `<div class="order-summary-item" style="color:#1DB954"><span>- ${discount} ر.س</span><span>🎁 خصم ${appliedDiscount}%</span></div>` : ''}
+    <div class="order-summary-total"><span style="color:var(--netflix)">${total} ر.س</span><span>المجموع</span></div>
+  `;
+}
+
+function selectPayment(type) {
+  selectedPayment = type;
+  document.querySelectorAll('.payment-option').forEach(el => el.classList.remove('selected'));
+  document.querySelectorAll('.payment-detail').forEach(el => el.classList.remove('show'));
+  event.currentTarget.classList.add('selected');
+  document.getElementById(`${type}-detail`).classList.add('show');
+}
+
+function placeOrder() {
+  const name = document.getElementById('customerName').value.trim();
+  const phone = document.getElementById('customerPhone').value.trim();
+  if(!name) { showToast('⚠️ أدخل اسمك'); return; }
+  if(!phone) { showToast('⚠️ أدخل رقم واتساب'); return; }
+  if(!selectedPayment) { showToast('⚠️ اختر طريقة الدفع'); return; }
+  const subtotal = cart.reduce((s,i) => s+i.price*i.qty, 0);
+  const discount = appliedDiscount > 0 ? Math.round(subtotal * appliedDiscount / 100) : 0;
+  const total = subtotal - discount;
+  const paymentText = selectedPayment === 'stc' ? 'STC Pay' : 'تحويل بنكي';
+  const items = cart.map(i => `${i.name} ×${i.qty} = ${i.price*i.qty} ر.س`).join('\n');
+  const discountLine = discount > 0 ? `\n🎁 خصم ${appliedDiscount}%: - ${discount} ر.س` : '';
+  orderDetails = `السلام عليكم 👋\n\n*طلب جديد من FouriCard*\n\n👤 الاسم: ${name}\n📱 الواتساب: ${phone}\n\n📦 *الطلب:*\n${items}${discountLine}\n\n💰 *المجموع: ${total} ر.س*\n💳 طريقة الدفع: ${paymentText}\n\nسأرسل إيصال التحويل الآن ✅`;
+  document.getElementById('whatsappOrderBtn').onclick = () => window.open(`https://wa.me/966551856922?text=${encodeURIComponent(orderDetails)}`, '_blank');
+  showPage('success');
+}
+
+// ===== GIFT MODAL =====
+function openGiftModal() {
+  if (!currentProduct || !selectedPlan) { showToast('⚠️ اختر خطة أولاً'); return; }
+  const p = currentProduct;
+  document.getElementById('giftProductInfo').innerHTML = `
+    <div class="modal-product-logo"><img src="${p.img}" alt="${p.brand}"></div>
+    <div><div class="modal-product-name">${p.brand} — ${selectedPlan.name}</div><div class="modal-product-price">${selectedPlan.price} ر.س</div></div>
+  `;
+  document.getElementById('giftModal').classList.add('show');
+}
+
+function closeGiftModal() { document.getElementById('giftModal').classList.remove('show'); }
+
+function sendGiftWhatsapp() {
+  const sender = document.getElementById('senderName').value.trim();
+  const recipient = document.getElementById('recipientName').value.trim();
+  const phone = document.getElementById('recipientPhone').value.trim();
+  const msg = document.getElementById('giftMessage').value.trim();
+  if (!sender) { showToast('⚠️ أدخل اسمك'); return; }
+  if (!recipient) { showToast('⚠️ أدخل اسم المُهدى إليه'); return; }
+  if (!phone) { showToast('⚠️ أدخل رقم واتساپ'); return; }
+  const p = currentProduct;
+  const giftText = 'السلام عليكم\n\n*طلب هدية - FouriCard*\n\n*المرسل:* ' + sender + '\n*المهدى اليه:* ' + recipient + '\n*واتساب المهدى اليه:* ' + phone + '\n\n*المنتج:* ' + p.brand + ' - ' + selectedPlan.name + '\n*السعر:* ' + selectedPlan.price + ' ر.س' + (msg ? '\n*رسالة الهدية:* "' + msg + '"' : '') + '\n\nبعد تاكيد الدفع، يرجى ارسال الكود على واتساب المهدى اليه: ' + phone;
+  window.open('https://wa.me/966551856922?text=' + encodeURIComponent(giftText), '_blank');
+  closeGiftModal(); showToast('🎉 تم إرسال طلب الهدية!');
+}
+
+window.addEventListener('DOMContentLoaded', function() {
+  const giftModal = document.getElementById('giftModal');
+  if (giftModal) giftModal.addEventListener('click', function(e) { if (e.target === this) closeGiftModal(); });
+});
+
+// ===== PAGE NAVIGATION =====
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.getElementById(`page-${page}`).classList.add('active');
+  window.scrollTo(0, 0);
+  if(page === 'cart') renderCart();
+  if(page === 'home') { renderProducts(); setTimeout(renderComments, 100); }
+  if(page === 'favorites') renderFavorites();
+}
+
+// ===== FILTERS =====
+function filterProducts(cat, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderProducts(cat);
+}
+
+// ===== TOAST =====
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ===== COUPON =====
+const coupons = { 'FR10': 10 };
+let appliedDiscount = 0;
+
+function applyCoupon() {
+  const code = document.getElementById('couponInput').value.trim().toUpperCase();
+  const msg = document.getElementById('couponMsg');
+  if(coupons[code]) {
+    appliedDiscount = coupons[code]; renderCart(); showToast('✅ تم تطبيق خصم ' + appliedDiscount + '%');
+  } else {
+    appliedDiscount = 0;
+    if(msg) { msg.className = 'coupon-msg error'; msg.textContent = '❌ كود الخصم غير صحيح'; }
+  }
+}
+
+function removeCoupon() {
+  appliedDiscount = 0; renderCart();
+  const input = document.getElementById('couponInput');
+  if(input) input.value = '';
+  showToast('🗑️ تم إزالة كود الخصم');
+}
+
+// ===== TYPEWRITER =====
+(function(){
+  const full = 'FouriCard'; const splitAt = 5; let i = 0;
+  const fouriEl = document.getElementById('twFouri');
+  const cardEl = document.getElementById('twCard');
+  if(!fouriEl) return;
+  function type() {
+    if(i <= full.length) {
+      const current = full.substring(0, i);
+      fouriEl.textContent = current.substring(0, Math.min(i, splitAt));
+      cardEl.textContent = current.substring(splitAt);
+      i++;
+      setTimeout(type, i === 1 ? 600 : 120);
+    } else {
+      setTimeout(() => { i = 0; fouriEl.textContent = ''; cardEl.textContent = ''; setTimeout(type, 800); }, 3500);
+    }
+  }
+  setTimeout(type, 800);
+})();
+
+// ===== COMMENTS =====
+let selectedStars = 5;
+const defaultComments = [
+  { name: 'محمد القرني', product: 'نتفليكس', text: 'ياخي اسطوري يارب تصير خويي', stars: 5, date: 'منذ يومين', color: '#E50914' },
+  { name: 'سارة الشمري', product: 'شاهد', text: 'جامممممد', stars: 5, date: 'منذ أسبوع', color: '#00A9E0' },
+  { name: 'خالد القحطاني', product: 'ثمانية', text: 'ان شاءالله مو اخر مره اشتري منكم', stars: 5, date: 'منذ أسبوعين', color: '#1DB954' },
+];
+let userComments = [];
+
+function setStars(n) {
+  selectedStars = n;
+  document.querySelectorAll('.star-btn').forEach((btn, i) => btn.classList.toggle('active', i < n));
+}
+
+function submitComment() {
+  const name = document.getElementById('commentName').value.trim();
+  const text = document.getElementById('commentText').value.trim();
+  const product = document.getElementById('commentProduct').value.trim();
+  if(!name) { showToast('⚠️ أدخل اسمك'); return; }
+  if(!text) { showToast('⚠️ اكتب تعليقك'); return; }
+  const colors = ['#E50914','#00A9E0','#1DB954','#F5C518','#4169E1'];
+  userComments.unshift({ name, text, product, stars: selectedStars, date: 'الآن', color: colors[Math.floor(Math.random() * colors.length)] });
+  document.getElementById('commentName').value = '';
+  document.getElementById('commentText').value = '';
+  document.getElementById('commentProduct').value = '';
+  setStars(5); renderComments(); showToast('✅ تم إرسال تعليقك!');
+}
+
+function renderComments() {
+  const list = document.getElementById('commentsList');
+  if(!list) return;
+  const all = [...userComments, ...defaultComments];
+  list.innerHTML = all.map(c => `
+    <div class="comment-card">
+      <div class="comment-header">
+        <div class="comment-author">
+          <div class="comment-avatar" style="background:${c.color}">${c.name[0]}</div>
+          <div>
+            <div class="comment-name">${c.name}${c.product ? ' <span style="color:var(--gray);font-weight:400;font-size:0.78rem">• ' + c.product + '</span>' : ''}</div>
+            <div class="comment-date">${c.date}</div>
+          </div>
+        </div>
+        <div class="comment-rating">${'★'.repeat(c.stars)}${'☆'.repeat(5-c.stars)}</div>
+      </div>
+      <div class="comment-text">${c.text}</div>
+    </div>
+  `).join('');
+}
+
+// ===== LIVE NOTIFICATIONS =====
+const notifData = [
+  { icon:'🎬', text:'شخص من الرياض اشترى نتفليكس بريميوم', time:'منذ دقيقة' },
+  { icon:'📺', text:'شخص من جدة اشترى شاهد VIP سنوي', time:'منذ 3 دقائق' },
+  { icon:'▶️', text:'شخص اشترى يوتيوب بريميوم', time:'منذ 5 دقائق' },
+  { icon:'🎥', text:'شخص من الدمام اشترى OSN+', time:'منذ 8 دقائق' },
+  { icon:'📦', text:'شخص اشترى أمازون برايم سنوي', time:'منذ 10 دقائق' },
+];
+let notifIndex = 0;
+
+function showNextNotif() {
+  const notif = document.getElementById('liveNotif');
+  const data = notifData[notifIndex % notifData.length];
+  document.getElementById('liveNotifIcon').textContent = data.icon;
+  document.getElementById('liveNotifText').textContent = data.text;
+  document.getElementById('liveNotifTime').textContent = data.time;
+  notif.classList.add('show');
+  setTimeout(() => { notif.classList.remove('show'); notifIndex++; setTimeout(showNextNotif, 6000); }, 3500);
+}
+
+function toggleFaq(el) {
+  const answer = el.nextElementSibling;
+  const icon = el.querySelector('.faq-icon');
+  answer.classList.toggle('open');
+  icon.classList.toggle('open');
+}
+
+// ===== INIT =====
+renderProducts();
+setStars(5);
+renderComments();
+setTimeout(showNextNotif, 5000);
+try {
+  const saved = sessionStorage.getItem('fouriCart');
+  if(saved) { cart = JSON.parse(saved); updateCartCount(); }
+} catch(e) {}
+</script>
+</body>
+</html>
