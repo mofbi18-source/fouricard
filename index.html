@@ -51,6 +51,7 @@
     transition: all 0.2s;
   }
   .cart-btn:hover { border-color: var(--netflix); color: var(--netflix); }
+  .nav-actions { display: flex; align-items: center; gap: 10px; }
   .cart-count {
     background: var(--netflix); color: white; font-size: 0.7rem; font-weight: 900;
     width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
@@ -102,10 +103,87 @@
   .buy-btn { padding: 10px 18px; border-radius: 10px; border: none; font-family: 'Cairo', sans-serif; font-size: 0.88rem; font-weight: 700; cursor: pointer; transition: all 0.2s; white-space: nowrap; }
   .buy-btn:hover { transform: scale(1.05); filter: brightness(1.1); }
 
+  /* FAVORITES */
+  .fav-btn {
+    position: absolute; top: 14px; right: 14px;
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 1px solid var(--border); background: var(--dark);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 1rem; transition: all 0.25s;
+    z-index: 2;
+  }
+  .fav-btn:hover { border-color: #ff4d6d; transform: scale(1.1); }
+  .fav-btn.active { background: rgba(255,77,109,0.15); border-color: #ff4d6d; }
+  .fav-btn.active::after { content: ''; }
+
+  /* FAVORITES PAGE */
+  .favs-empty { text-align:center; padding: 80px 20px; color: var(--gray); }
+  .favs-empty .empty-icon { font-size: 4rem; margin-bottom: 16px; }
+  .favs-empty p { font-size: 1.1rem; margin-bottom: 24px; }
+  .fav-count-badge {
+    background: #ff4d6d; color: white; font-size: 0.7rem; font-weight: 900;
+    width: 18px; height: 18px; border-radius: 50%;
+    display: none; align-items: center; justify-content: center;
+  }
+  .fav-count-badge.show { display: flex; }
+
   /* SECTION TITLE */
   .section-title { position: relative; z-index: 1; padding: 0 5% 32px; display: flex; align-items: center; gap: 14px; }
   .section-title h2 { font-family: 'Tajawal', sans-serif; font-weight: 800; font-size: 1.5rem; }
   .title-line { flex: 1; height: 1px; background: var(--border); }
+
+  /* ===== GIFT MODAL ===== */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 9999;
+    background: rgba(0,0,0,0.85); backdrop-filter: blur(6px);
+    display: flex; align-items: flex-start; justify-content: center;
+    padding: 20px; overflow-y: auto;
+    opacity: 0; pointer-events: none; transition: opacity 0.3s;
+  }
+  .modal-overlay.show { opacity: 1; pointer-events: all; }
+  .modal-box {
+    background: #181818; border: 1px solid #2a2a2a;
+    border-radius: 20px; padding: 32px 28px; max-width: 420px; width: 100%;
+    margin: auto;
+    transform: translateY(30px); transition: transform 0.3s;
+  }
+  .modal-overlay.show .modal-box { transform: translateY(0); }
+  .modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 22px; }
+  .modal-title { font-family: 'Tajawal', sans-serif; font-weight: 900; font-size: 1.3rem; }
+  .modal-close { background: none; border: none; color: #888; font-size: 1.4rem; cursor: pointer; line-height: 1; padding: 4px; }
+  .modal-close:hover { color: white; }
+  .modal-product-info { background: #111; border: 1px solid #2a2a2a; border-radius: 12px; padding: 14px 16px; margin-bottom: 22px; display: flex; align-items: center; gap: 14px; }
+  .modal-product-logo { width: 44px; height: 44px; border-radius: 10px; overflow: hidden; flex-shrink: 0; }
+  .modal-product-logo img { width: 100%; height: 100%; object-fit: cover; }
+  .modal-product-name { font-weight: 700; font-size: 0.95rem; }
+  .modal-product-price { color: #E50914; font-family: 'Tajawal', sans-serif; font-weight: 900; font-size: 1rem; margin-top: 2px; }
+  .modal-field { margin-bottom: 16px; }
+  .modal-label { font-size: 0.82rem; color: #888; margin-bottom: 6px; display: block; }
+  .modal-input {
+    width: 100%; background: #111; border: 1px solid #2a2a2a;
+    border-radius: 10px; padding: 12px 14px; color: white;
+    font-family: 'Cairo', sans-serif; font-size: 0.92rem; outline: none;
+    transition: border-color 0.2s;
+  }
+  .modal-input:focus { border-color: #25D366; }
+  .modal-input::placeholder { color: #555; }
+  .modal-note { background: rgba(37,211,102,0.08); border: 1px solid rgba(37,211,102,0.25); border-radius: 10px; padding: 12px 14px; font-size: 0.82rem; color: #25D366; margin-bottom: 20px; line-height: 1.7; }
+  .gift-send-btn {
+    width: 100%; padding: 14px; border-radius: 12px; border: none;
+    background: #25D366; color: white; font-family: 'Cairo', sans-serif;
+    font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+  .gift-send-btn:hover { background: #20bc5a; transform: translateY(-2px); }
+  .gift-btn {
+    width: 100%; padding: 12px; border-radius: 12px;
+    border: 1px solid #f5c518; background: rgba(245,197,24,0.08);
+    color: #f5c518; font-family: 'Cairo', sans-serif;
+    font-size: 0.9rem; font-weight: 700; cursor: pointer;
+    margin-top: 10px; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+  .gift-btn:hover { background: rgba(245,197,24,0.18); transform: translateY(-1px); }
 
   /* TRUST STRIP */
   .trust-strip { position: relative; z-index: 1; margin: 0 5% 60px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 16px; padding: 28px 32px; display: flex; justify-content: space-around; flex-wrap: wrap; gap: 20px; }
@@ -355,10 +433,16 @@
   <span>| سيتم الإطلاق قريباً ⚡</span>
 </div>
 <nav>
-  <button class="cart-btn" onclick="showPage('cart')">
-    🛒 السلة
-    <div class="cart-count" id="cartCount">0</div>
-  </button>
+  <div class="nav-actions">
+    <button class="cart-btn" onclick="showPage('favorites')" style="gap:6px" title="المفضلة">
+      ❤️ المفضلة
+      <div class="fav-count-badge" id="favCount">0</div>
+    </button>
+    <button class="cart-btn" onclick="showPage('cart')">
+      🛒 السلة
+      <div class="cart-count" id="cartCount">0</div>
+    </button>
+  </div>
   <div class="logo" onclick="showPage('home')">Fouri<span>Card</span></div>
   <div class="nav-badge">⚡ استلام فوري</div>
 </nav>
@@ -580,6 +664,15 @@
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
+<!-- ===== FAVORITES PAGE ===== -->
+<div id="page-favorites" class="page">
+  <div class="cart-page">
+    <button class="back-btn" onclick="showPage('home')">← العودة للمتجر</button>
+    <h1>❤️ المفضلة</h1>
+    <div id="favsContent"></div>
+  </div>
+</div>
+
 <script>
 // ===== DATA =====
 const products = [
@@ -601,6 +694,60 @@ let cart = [];
 let currentProduct = null;
 let selectedPayment = null;
 let orderDetails = '';
+let favorites = [];
+
+// ===== FAVORITES =====
+function toggleFavorite(id) {
+  const idx = favorites.indexOf(id);
+  if (idx === -1) {
+    favorites.push(id);
+    showToast('❤️ تمت الإضافة للمفضلة!');
+  } else {
+    favorites.splice(idx, 1);
+    showToast('💔 تمت الإزالة من المفضلة');
+  }
+  updateFavCount();
+  // Update button in current view
+  const btn = document.getElementById('fav-' + id);
+  if (btn) {
+    btn.classList.toggle('active', favorites.includes(id));
+    btn.textContent = favorites.includes(id) ? '❤️' : '🤍';
+  }
+}
+
+function updateFavCount() {
+  const badge = document.getElementById('favCount');
+  if (!badge) return;
+  badge.textContent = favorites.length;
+  badge.classList.toggle('show', favorites.length > 0);
+}
+
+function renderFavorites() {
+  const el = document.getElementById('favsContent');
+  if (!el) return;
+  const favProducts = products.filter(p => favorites.includes(p.id));
+  if (favProducts.length === 0) {
+    el.innerHTML = `<div class="favs-empty"><div class="empty-icon">🤍</div><p>ما في منتجات في المفضلة بعد</p><button class="checkout-btn" onclick="showPage('home')" style="max-width:200px;margin:0 auto">تصفح المنتجات</button></div>`;
+    return;
+  }
+  el.innerHTML = `<div class="products" style="padding:0 0 40px">${favProducts.map(p => `
+    <div class="product-card" data-cat="${p.cat}">
+      <div class="card-header">
+        <div class="brand-logo" style="background:${p.bg};padding:0;overflow:hidden"><img src="${p.img}" style="width:100%;height:100%;object-fit:cover" alt="${p.brand}"></div>
+        <div class="card-meta"><div class="card-brand">${p.brand}</div><div class="card-name">${p.name}</div></div>
+        <button class="fav-btn active" onclick="toggleFavorite(${p.id});renderFavorites();" title="إزالة من المفضلة">❤️</button>
+      </div>
+      <div class="card-body">
+        <p class="card-desc">${p.desc}</p>
+        <div class="card-features">${p.features.map(f => `<div class="feature"><div class="feature-dot" style="background:${p.color}"></div>${f}</div>`).join('')}</div>
+      </div>
+      <div class="card-footer">
+        <div class="sold-badge"><div class="sold-dot"></div>${p.sold}+ عملية شراء</div>
+        <button class="buy-btn" style="background:#E50914;color:white;width:100%;margin-top:10px" onclick="openProduct(${p.id})">عرض الخطط والأسعار ←</button>
+      </div>
+    </div>
+  `).join('')}</div>`;
+}
 
 // ===== RENDER PRODUCTS =====
 function renderProducts(filter='all') {
@@ -612,6 +759,9 @@ function renderProducts(filter='all') {
         <div class="brand-logo" style="background:${p.bg};padding:0;overflow:hidden"><img src="${p.img}" style="width:100%;height:100%;object-fit:cover" alt="${p.brand}"></div>
         <div class="card-meta"><div class="card-brand">${p.brand}</div><div class="card-name">${p.name}</div></div>
         ${p.badge ? `<span class="badge ${p.badge}">${p.badgeText}</span>` : ''}
+        <button class="fav-btn ${favorites.includes(p.id) ? 'active' : ''}" onclick="event.stopPropagation();toggleFavorite(${p.id})" id="fav-${p.id}" title="أضف للمفضلة">
+          ${favorites.includes(p.id) ? '❤️' : '🤍'}
+        </button>
       </div>
       <div class="card-body">
         <p class="card-desc">${p.desc}</p>
@@ -620,7 +770,6 @@ function renderProducts(filter='all') {
         </div>
       </div>
       <div class="card-footer">
-
         <div class="sold-badge"><div class="sold-dot"></div>${p.sold}+ عملية شراء</div>
         <button class="buy-btn" style="background:#E50914;color:white;width:100%;margin-top:10px" onclick="openProduct(${p.id})">عرض الخطط والأسعار ←</button>
       </div>
@@ -752,7 +901,7 @@ function openProduct(id) {
         </div>
       </div>
       <button class="add-cart-btn" style="background:#E50914;color:white" onclick="addToCartWithQty()">أضف للسلة 🛒</button>
-      <button class="whatsapp-btn" onclick="contactWhatsapp('${p.name}')">📱 استفسر على واتساب</button>
+      <button class="gift-btn" onclick="openGiftModal()">🎁 أرسلها هدية لشخص آخر</button>
     </div>
   `;
   showPage('product');
@@ -925,6 +1074,59 @@ function contactWhatsapp(productName) {
   window.open(`https://wa.me/966551856922?text=${encodeURIComponent(msg)}`, '_blank');
 }
 
+// ===== GIFT MODAL =====
+function openGiftModal() {
+  if (!currentProduct) return;
+  if (!selectedPlan) { showToast('⚠️ اختر خطة أولاً'); return; }
+  const p = currentProduct;
+  document.getElementById('giftProductInfo').innerHTML = `
+    <div class="modal-product-logo"><img src="${p.img}" alt="${p.brand}"></div>
+    <div>
+      <div class="modal-product-name">${p.brand} — ${selectedPlan.name}</div>
+      <div class="modal-product-price">${selectedPlan.price} ر.س</div>
+    </div>
+  `;
+  document.getElementById('giftModal').classList.add('show');
+}
+
+function closeGiftModal() {
+  document.getElementById('giftModal').classList.remove('show');
+}
+
+function sendGiftWhatsapp() {
+  const sender = document.getElementById('senderName').value.trim();
+  const recipient = document.getElementById('recipientName').value.trim();
+  const phone = document.getElementById('recipientPhone').value.trim();
+  const msg = document.getElementById('giftMessage').value.trim();
+
+  if (!sender) { showToast('⚠️ أدخل اسمك'); return; }
+  if (!recipient) { showToast('⚠️ أدخل اسم المُهدى إليه'); return; }
+  if (!phone) { showToast('⚠️ أدخل رقم واتساپ المُهدى إليه'); return; }
+
+  const p = currentProduct;
+  const giftText = 'السلام عليكم\n\n'
+    + '*طلب هدية - FouriCard*\n\n'
+    + '*المرسل:* ' + sender + '\n'
+    + '*المهدى اليه:* ' + recipient + '\n'
+    + '*واتساب المهدى اليه:* ' + phone + '\n\n'
+    + '*المنتج:* ' + p.brand + ' - ' + selectedPlan.name + '\n'
+    + '*السعر:* ' + selectedPlan.price + ' ر.س'
+    + (msg ? '\n*رسالة الهدية:* "' + msg + '"' : '') + '\n\n'
+    + 'بعد تاكيد الدفع، يرجى ارسال الكود على واتساب المهدى اليه: ' + phone;
+
+  window.open('https://wa.me/966551856922?text=' + encodeURIComponent(giftText), '_blank');
+  closeGiftModal();
+  showToast('🎉 تم إرسال طلب الهدية!');
+}
+
+// Close modal on overlay click
+window.addEventListener('DOMContentLoaded', function() {
+  const giftModal = document.getElementById('giftModal');
+  if (giftModal) giftModal.addEventListener('click', function(e) {
+    if (e.target === this) closeGiftModal();
+  });
+});
+
 // ===== PAGE NAVIGATION =====
 function showPage(page) {
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -932,6 +1134,7 @@ function showPage(page) {
   window.scrollTo(0, 0);
   if(page === 'cart') renderCart();
   if(page === 'home') { renderProducts(); setTimeout(renderComments, 100); }
+  if(page === 'favorites') renderFavorites();
 }
 
 // ===== FILTERS =====
@@ -1160,6 +1363,40 @@ renderProducts();
 setStars(5);
 renderComments();
 </script>
+
+<!-- GIFT MODAL -->
+<div class="modal-overlay" id="giftModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <div class="modal-title">🎁 إرسال هدية</div>
+      <button class="modal-close" onclick="closeGiftModal()">✕</button>
+    </div>
+    <div class="modal-product-info" id="giftProductInfo"></div>
+    <div class="modal-note">
+      سيتم إرسال رسالة واتساپ إليك تحتوي على تفاصيل الهدية وبيانات المُهدى إليه، وبعد تأكيد الدفع نرسل الكود مباشرة للشخص الثاني 🎉
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">اسمك أنت (المُرسِل)</label>
+      <input class="modal-input" id="senderName" placeholder="مثال: محمد">
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">اسم الشخص المُهدى إليه</label>
+      <input class="modal-input" id="recipientName" placeholder="مثال: أحمد">
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">رقم واتساپ المُهدى إليه</label>
+      <input class="modal-input" id="recipientPhone" placeholder="05xxxxxxxx" type="tel" dir="ltr">
+    </div>
+    <div class="modal-field">
+      <label class="modal-label">رسالة هدية (اختياري)</label>
+      <input class="modal-input" id="giftMessage" placeholder="بمناسبة عيد ميلادك 🎂">
+    </div>
+    <button class="gift-send-btn" onclick="sendGiftWhatsapp()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+      إرسال طلب الهدية عبر واتساپ
+    </button>
+  </div>
+</div>
 
 <!-- FLOATING WHATSAPP -->
 <div class="wa-tooltip" style="font-size:0.72rem;padding:5px 9px">💬 تواصل معنا</div>
