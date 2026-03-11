@@ -605,6 +605,56 @@
     .price-big { font-size: 1.5rem; }
   }
 </style>
+
+<!-- Firebase -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFirestore, doc, setDoc, getDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCs9PKaeDFEnFSK9wxzbTjGgZuF73ADfhI",
+    authDomain: "fouricard-5d595.firebaseapp.com",
+    projectId: "fouricard-5d595",
+    storageBucket: "fouricard-5d595.firebasestorage.app",
+    messagingSenderId: "149407649964",
+    appId: "1:149407649964:web:a3a745cff95367241a8f09"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const STORE_DOC = doc(db, 'fouricard', 'store');
+
+  window.fbSave = async function(key, value) {
+    try { await setDoc(STORE_DOC, { [key]: JSON.stringify(value) }, { merge: true }); }
+    catch(e) { console.warn('fbSave:', e); }
+  };
+
+  window.fbLoad = async function() {
+    try {
+      const snap = await getDoc(STORE_DOC);
+      if(snap.exists()) {
+        Object.keys(snap.data()).forEach(k => localStorage.setItem(k, snap.data()[k]));
+        console.log('✅ Firebase loaded');
+      }
+    } catch(e) { console.warn('fbLoad:', e); }
+  };
+
+  window.fbListen = function() {
+    onSnapshot(STORE_DOC, (snap) => {
+      if(!snap.exists()) return;
+      Object.keys(snap.data()).forEach(k => localStorage.setItem(k, snap.data()[k]));
+      if(typeof applyContent === 'function') applyContent();
+      if(typeof applyMarketing === 'function') applyMarketing();
+      if(typeof applyMaintenanceMode === 'function') applyMaintenanceMode();
+      if(typeof renderProducts === 'function') renderProducts();
+    });
+  };
+
+  window.fbLoad().then(() => {
+    window.fbListen();
+    if(typeof window.admReinit === 'function') window.admReinit();
+  });
+</script>
 </head>
 <body>
 
@@ -1784,7 +1834,10 @@ setStars(5);
 renderComments();
 (function() {
   const m = JSON.parse(localStorage.getItem('fc_marketing') || '{}');
+  if(m.notifsEnabled !== false) (function() {
+  const m = JSON.parse(localStorage.getItem('fc_marketing') || '{}');
   if(m.notifsEnabled !== false) setTimeout(showNextNotif, 5000);
+})();
 })();
 try {
   const saved = sessionStorage.getItem('fouriCart');
@@ -1804,6 +1857,7 @@ function admSaveAll() {
   localStorage.setItem('fc_products', JSON.stringify(admProducts));
   localStorage.setItem('fc_coupons', JSON.stringify(admCoupons));
   localStorage.setItem('fc_settings', JSON.stringify(admSettings));
+  if(window.fbSave) { window.fbSave('fc_products', admProducts); window.fbSave('fc_coupons', admCoupons); window.fbSave('fc_settings', admSettings); }
   // تحديث المنتجات في المتجر فوراً
   const visible = admProducts.filter(p => p.visible !== false);
   if(visible.length > 0) {
@@ -2108,6 +2162,7 @@ function admSaveContent() {
   admContent.wa            = document.getElementById('ccWa')?.value?.trim() || '';
   admContent.waText        = document.getElementById('ccWaText')?.value?.trim() || '';
   localStorage.setItem('fc_content', JSON.stringify(admContent));
+  if(window.fbSave) window.fbSave('fc_content', admContent);
   applyContent();
   admToast('✅ تم حفظ المحتوى!');
 }
@@ -2201,6 +2256,7 @@ function admSaveMarketing() {
   if(admMarketing.notifs === undefined) admMarketing.notifs = [...notifData];
 
   localStorage.setItem('fc_marketing', JSON.stringify(admMarketing));
+  if(window.fbSave) window.fbSave('fc_marketing', admMarketing);
   applyMarketing();
   admToast('✅ تم الحفظ!');
 }
@@ -2352,6 +2408,7 @@ function admToggleMaintenance() {
   const enabled = document.getElementById('maintEnabled')?.checked;
   admSettings.maintenance = enabled;
   localStorage.setItem('fc_settings', JSON.stringify(admSettings));
+  if(window.fbSave) window.fbSave('fc_settings', admSettings);
   applyMaintenanceMode();
 }
 
@@ -2466,6 +2523,18 @@ window.admOpenEdit = function(id) {
   pc.innerHTML = '';
   if(p.plans) p.plans.forEach(pl => admAddPlan(pl.name, pl.price, pl.desc));
   document.getElementById('admProductModal').classList.add('show');
+};
+
+window.admReinit = function() {
+  if(typeof admProducts !== 'undefined') admProducts = JSON.parse(localStorage.getItem('fc_products') || '[]');
+  if(typeof admCoupons !== 'undefined') admCoupons = JSON.parse(localStorage.getItem('fc_coupons') || '[{"code":"FR10","pct":10}]');
+  if(typeof admSettings !== 'undefined') admSettings = JSON.parse(localStorage.getItem('fc_settings') || '{}');
+  if(typeof admContent !== 'undefined') admContent = JSON.parse(localStorage.getItem('fc_content') || '{}');
+  if(typeof admMarketing !== 'undefined') admMarketing = JSON.parse(localStorage.getItem('fc_marketing') || '{}');
+  if(typeof renderProducts === 'function') renderProducts();
+  if(typeof applyContent === 'function') applyContent();
+  if(typeof applyMarketing === 'function') applyMarketing();
+  if(typeof applyMaintenanceMode === 'function') applyMaintenanceMode();
 };
 </script>
 </body>
