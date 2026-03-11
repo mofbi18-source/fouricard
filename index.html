@@ -209,8 +209,8 @@
   .sidebar-overlay.show { opacity: 1; pointer-events: all; }
 
   .sidebar {
-    position: fixed; top: 0; right: -320px;
-    width: 300px;
+    position: fixed; top: 0; right: -100%;
+    width: min(280px, 85vw);
     height: 100%; height: 100dvh;
     z-index: 300;
     background: #0f0f0f;
@@ -223,82 +223,54 @@
   .sidebar.open { right: 0; }
 
   .sidebar-header {
-    padding: 18px 16px 14px;
+    padding: 16px 18px;
     display: flex; align-items: center; justify-content: space-between;
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0; min-height: 60px;
+    border-bottom: 1px solid var(--border); flex-shrink: 0;
   }
-  .sidebar-logo {
-    font-family: 'Tajawal', sans-serif; font-weight: 900; font-size: 1.35rem;
-    color: var(--white); white-space: nowrap;
-  }
+  .sidebar-logo { font-family: 'Tajawal', sans-serif; font-weight: 900; font-size: 1.3rem; color: var(--white); }
   .sidebar-logo span { color: var(--netflix); }
   .sidebar-close {
-    width: 34px; height: 34px; min-width: 34px;
-    background: rgba(255,255,255,0.06);
-    border: 1px solid var(--border); border-radius: 9px;
+    width: 32px; height: 32px; min-width: 32px;
+    background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 8px;
     color: var(--gray); cursor: pointer; font-size: 1rem;
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.2s; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; transition: all 0.2s;
   }
   .sidebar-close:hover { color: var(--white); border-color: var(--netflix); }
 
   .sidebar-user {
-    padding: 14px 16px;
-    display: flex; align-items: center; gap: 12px;
-    background: rgba(229,9,20,0.05);
-    border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
+    padding: 14px 18px; display: flex; align-items: center; gap: 10px;
+    background: rgba(229,9,20,0.05); border-bottom: 1px solid var(--border); flex-shrink: 0;
   }
   .sidebar-avatar {
-    width: 42px; height: 42px; min-width: 42px;
-    background: rgba(229,9,20,0.15);
-    border: 1px solid rgba(229,9,20,0.3); border-radius: 11px;
-    display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
-    flex-shrink: 0;
+    width: 38px; height: 38px; min-width: 38px;
+    background: rgba(229,9,20,0.15); border: 1px solid rgba(229,9,20,0.3); border-radius: 10px;
+    display: flex; align-items: center; justify-content: center; font-size: 1.1rem;
   }
-  .sidebar-welcome { font-weight: 700; font-size: 0.92rem; white-space: nowrap; }
-  .sidebar-sub { color: var(--gray); font-size: 0.76rem; margin-top: 2px; white-space: nowrap; }
+  .sidebar-welcome { font-weight: 700; font-size: 0.88rem; }
+  .sidebar-sub { color: var(--gray); font-size: 0.74rem; margin-top: 1px; }
 
   .sidebar-nav { padding: 6px 10px; flex-shrink: 0; }
   .sidebar-link {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 12px; border-radius: 10px;
-    color: var(--gray-light); font-size: 0.88rem; font-weight: 600;
-    cursor: pointer; transition: all 0.2s;
-    text-decoration: none; margin-bottom: 1px;
-    white-space: nowrap; overflow: hidden;
-    min-height: 42px;
+    display: block; padding: 10px 14px; border-radius: 10px;
+    color: var(--gray-light); font-size: 0.9rem; font-weight: 600;
+    cursor: pointer; transition: all 0.2s; text-decoration: none; margin-bottom: 2px;
   }
   .sidebar-link:hover { background: rgba(255,255,255,0.05); color: var(--white); }
   .sidebar-link.active { background: rgba(229,9,20,0.1); color: var(--white); }
-  .sidebar-icon { font-size: 1rem; width: 22px; min-width: 22px; text-align: center; flex-shrink: 0; }
-  .sidebar-cart-count {
-    margin-right: auto; background: var(--netflix); color: white;
-    font-size: 0.66rem; font-weight: 900; min-width: 18px; height: 18px;
-    border-radius: 9px; display: flex; align-items: center; justify-content: center;
-    padding: 0 5px; flex-shrink: 0;
-  }
 
-  .sidebar-divider { height: 1px; background: var(--border); margin: 6px 16px; flex-shrink: 0; }
+  .sidebar-divider { height: 1px; background: var(--border); margin: 4px 14px; }
   .sidebar-section-title {
-    padding: 8px 22px 3px; color: var(--gray); font-size: 0.7rem;
-    font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
-    flex-shrink: 0; white-space: nowrap;
+    padding: 8px 24px 2px; color: var(--gray); font-size: 0.68rem;
+    font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase;
   }
-
   .sidebar-footer {
-    margin-top: auto; padding: 14px 16px;
-    border-top: 1px solid var(--border);
-    color: var(--gray); font-size: 0.73rem;
-    display: flex; justify-content: space-between;
-    flex-shrink: 0; white-space: nowrap; gap: 8px;
+    margin-top: auto; padding: 12px 18px; border-top: 1px solid var(--border);
+    color: var(--gray); font-size: 0.72rem;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-shrink: 0; gap: 8px;
   }
-  .sidebar-social { display: flex; gap: 8px; align-items: center; }
-  .sidebar-social a {
-    color: var(--gray); text-decoration: none; font-size: 1rem;
-    transition: color 0.2s; display: flex; align-items: center;
-  }
+  .sidebar-social { display: flex; gap: 10px; }
+  .sidebar-social a { color: var(--gray); text-decoration: none; font-size: 0.95rem; transition: color 0.2s; }
   .sidebar-social a:hover { color: var(--white); }
 
   /* ===== HERO ===== */
@@ -760,83 +732,48 @@
 
 <!-- SIDEBAR -->
 <div class="sidebar" id="sidebar">
-
   <div class="sidebar-header">
     <div class="sidebar-logo">Fouri<span>Card</span></div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
-
   <div class="sidebar-user">
     <div class="sidebar-avatar">🛍️</div>
-    <div style="overflow:hidden">
+    <div>
       <div class="sidebar-welcome">مرحباً بك!</div>
       <div class="sidebar-sub">متجر البطاقات الرقمية</div>
     </div>
   </div>
-
   <nav class="sidebar-nav">
-    <a class="sidebar-link" onclick="showPage('home');closeSidebar()">
-      <span class="sidebar-icon">🏠</span><span>الرئيسية</span>
-    </a>
-    <a class="sidebar-link" onclick="showPage('cart');closeSidebar()">
-      <span class="sidebar-icon">🛒</span><span>سلة التسوق</span>
-      <span class="sidebar-cart-count" id="sidebarCartCount">0</span>
-    </a>
-    <a class="sidebar-link" onclick="showPage('favorites');closeSidebar()">
-      <span class="sidebar-icon">❤️</span><span>المفضلة</span>
-    </a>
+    <a class="sidebar-link" onclick="showPage('home');closeSidebar()">الرئيسية</a>
+    <a class="sidebar-link" onclick="showPage('cart');closeSidebar()">سلة التسوق</a>
+    <a class="sidebar-link" onclick="showPage('favorites');closeSidebar()">المفضلة</a>
   </nav>
-
   <div class="sidebar-divider"></div>
   <div class="sidebar-section-title">تصفح حسب الفئة</div>
-
   <nav class="sidebar-nav">
-    <a class="sidebar-link" onclick="filterFromSidebar('all')">
-      <span class="sidebar-icon">✨</span><span>جميع المنتجات</span>
-    </a>
-    <a class="sidebar-link" onclick="filterFromSidebar('netflix')">
-      <span class="sidebar-icon" style="color:#E50914">🎬</span><span>نتفليكس</span>
-    </a>
-    <a class="sidebar-link" onclick="filterFromSidebar('shahid')">
-      <span class="sidebar-icon" style="color:#00A9E0">📺</span><span>شاهد VIP</span>
-    </a>
-    <a class="sidebar-link" onclick="filterFromSidebar('thamanya')">
-      <span class="sidebar-icon">⚽</span><span>ثمانية</span>
-    </a>
-    <a class="sidebar-link" onclick="filterFromSidebar('osn')">
-      <span class="sidebar-icon" style="color:#FFD700">🎥</span><span>OSN+</span>
-    </a>
-    <a class="sidebar-link" onclick="filterFromSidebar('youtube')">
-      <span class="sidebar-icon" style="color:#FF0000">▶️</span><span>يوتيوب بريميوم</span>
-    </a>
-    <a class="sidebar-link" onclick="filterFromSidebar('amazon')">
-      <span class="sidebar-icon" style="color:#FF9900">📦</span><span>أمازون برايم</span>
-    </a>
+    <a class="sidebar-link" onclick="filterFromSidebar('all')">جميع المنتجات</a>
+    <a class="sidebar-link" onclick="filterFromSidebar('netflix')">نتفليكس</a>
+    <a class="sidebar-link" onclick="filterFromSidebar('shahid')">شاهد VIP</a>
+    <a class="sidebar-link" onclick="filterFromSidebar('thamanya')">ثمانية</a>
+    <a class="sidebar-link" onclick="filterFromSidebar('osn')">OSN+</a>
+    <a class="sidebar-link" onclick="filterFromSidebar('youtube')">يوتيوب بريميوم</a>
+    <a class="sidebar-link" onclick="filterFromSidebar('amazon')">أمازون برايم</a>
   </nav>
-
   <div class="sidebar-divider"></div>
-
   <nav class="sidebar-nav">
-    <a class="sidebar-link" onclick="document.querySelector('.about-section')?.scrollIntoView({behavior:'smooth'});showPage('home');closeSidebar()">
-      <span class="sidebar-icon">👋</span><span>من نحن</span>
-    </a>
-    <a class="sidebar-link" onclick="document.querySelector('.faq-section')?.scrollIntoView({behavior:'smooth'});showPage('home');closeSidebar()">
-      <span class="sidebar-icon">❓</span><span>أسئلة شائعة</span>
-    </a>
-    <a class="sidebar-link" id="sidebarWaLink" href="https://wa.me/966551856922" target="_blank" onclick="closeSidebar()">
-      <span class="sidebar-icon" style="color:#25D366">💬</span><span id="sidebarWaText">تواصل معنا</span>
-    </a>
+    <a class="sidebar-link" onclick="document.querySelector('.about-section')?.scrollIntoView({behavior:'smooth'});showPage('home');closeSidebar()">من نحن</a>
+    <a class="sidebar-link" onclick="document.querySelector('.faq-section')?.scrollIntoView({behavior:'smooth'});showPage('home');closeSidebar()">أسئلة شائعة</a>
+    <a class="sidebar-link" id="sidebarWaLink" href="https://wa.me/966551856922" target="_blank" onclick="closeSidebar()"><span id="sidebarWaText">تواصل معنا</span></a>
   </nav>
-
   <div class="sidebar-footer">
     <div>© 2025 FouriCard</div>
     <div class="sidebar-social">
-      <a id="sidebarInsta" href="https://instagram.com/fouricard" target="_blank" title="إنستقرام">📷</a>
-      <a id="sidebarTwitter" href="https://x.com/fouricard" target="_blank" title="تويتر">🐦</a>
+      <a id="sidebarInsta" href="https://instagram.com/fouricard" target="_blank">📷</a>
+      <a id="sidebarTwitter" href="https://x.com/fouricard" target="_blank">🐦</a>
     </div>
   </div>
-
 </div>
+
 
 <!-- ===== HOME PAGE ===== -->
 <div id="page-home" class="page active">
@@ -1960,11 +1897,14 @@ const notifData = [
 let notifIndex = 0;
 
 function showNextNotif() {
+  const m = JSON.parse(localStorage.getItem('fc_marketing') || '{}');
+  if(m.notifsEnabled === false) return;
   const notif = document.getElementById('liveNotif');
-  const data = notifData[notifIndex % notifData.length];
-  document.getElementById('liveNotifIcon').textContent = data.icon;
+  const list = (m.notifs && m.notifs.length) ? m.notifs : notifData;
+  const data = list[notifIndex % list.length];
+  document.getElementById('liveNotifIcon').textContent = data.icon || '🔔';
   document.getElementById('liveNotifText').textContent = data.text;
-  document.getElementById('liveNotifTime').textContent = data.time;
+  document.getElementById('liveNotifTime').textContent = data.time || 'منذ دقيقة';
   notif.classList.add('show');
   setTimeout(() => { notif.classList.remove('show'); notifIndex++; setTimeout(showNextNotif, 6000); }, 3500);
 }
@@ -1980,7 +1920,13 @@ function toggleFaq(el) {
 renderProducts();
 setStars(5);
 renderComments();
-setTimeout(showNextNotif, 5000);
+// Start notifs only if enabled in admin
+(function() {
+  const m = JSON.parse(localStorage.getItem('fc_marketing') || '{}');
+  if(m.notifsEnabled !== false) {
+    setTimeout(showNextNotif, 5000);
+  }
+})();
 try {
   const saved = sessionStorage.getItem('fouriCart');
   if(saved) { cart = JSON.parse(saved); updateCartCount(); }
@@ -2397,6 +2343,13 @@ function admSaveMarketing() {
 
   localStorage.setItem('fc_marketing', JSON.stringify(admMarketing));
   applyMarketing();
+  // Restart or stop notifications live
+  const liveNotif = document.getElementById('liveNotif');
+  if(liveNotif) liveNotif.classList.remove('show');
+  if(notifsEnabled) {
+    notifIndex = 0;
+    setTimeout(showNextNotif, 1000);
+  }
   admToast('✅ تم الحفظ!');
 }
 
