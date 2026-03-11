@@ -398,6 +398,7 @@
   .badge-hot { background: rgba(229,9,20,0.18); color: var(--netflix); border: 1px solid rgba(229,9,20,0.3); }
   .badge-new { background: rgba(29,185,84,0.18); color: var(--spotify); border: 1px solid rgba(29,185,84,0.3); }
   .badge-best { background: rgba(245,197,24,0.18); color: var(--gold); border: 1px solid rgba(245,197,24,0.3); }
+  .badge-sale { background: rgba(255,100,0,0.18); color: #ff6400; border: 1px solid rgba(255,100,0,0.3); }
 
   .fav-btn {
     position: absolute; top: 12px; right: 12px;
@@ -711,10 +712,18 @@
 </head>
 <body>
 
-<!-- MAINTENANCE BANNER -->
-<div class="maintenance-banner">
-  🚧 المتجر قيد الإنشاء — لا تقم بأي عمليات شراء حالياً
-  <span>| سيتم الإطلاق قريباً ⚡</span>
+<!-- MAINTENANCE OVERLAY -->
+<div id="maintenanceOverlay" style="display:none;position:fixed;inset:0;z-index:9998;background:#080808;flex-direction:column;align-items:center;justify-content:center;gap:16px">
+  <div style="font-size:3rem">🚧</div>
+  <div style="font-family:'Tajawal',sans-serif;font-size:1.8rem;font-weight:900">المتجر تحت الصيانة</div>
+  <div style="color:#888;font-size:0.95rem" id="maintMsg">سيتم الإطلاق قريباً ⚡</div>
+</div>
+<!-- TOP BANNER -->
+<div id="topBanner" style="display:none;padding:9px 20px;text-align:center;font-weight:700;font-size:0.88rem;align-items:center;justify-content:center;gap:10px"></div>
+<!-- SALE TIMER -->
+<div id="saleTimerBar" style="display:none;background:linear-gradient(90deg,#E50914,#b0060f);color:white;padding:9px 20px;text-align:center;font-weight:700;font-size:0.88rem;align-items:center;justify-content:center;gap:12px">
+  <span id="saleTimerText">⚡ عرض محدود!</span>
+  <span id="saleTimerCount" style="background:rgba(0,0,0,0.3);padding:3px 12px;border-radius:8px;font-family:monospace;font-size:0.95rem"></span>
 </div>
 
 <!-- NAVBAR -->
@@ -1010,6 +1019,7 @@
     <div class="adm-tabs">
       <button class="adm-tab active" onclick="admTab('products',this)">📦 المنتجات</button>
       <button class="adm-tab" onclick="admTab('coupons',this)">🎁 الكوبونات</button>
+      <button class="adm-tab" onclick="admTab('marketing',this)">📣 التسويق</button>
       <button class="adm-tab" onclick="admTab('settings',this)">⚙️ الإعدادات</button>
     </div>
     <div class="adm-actions">
@@ -1044,10 +1054,83 @@
       <div class="adm-tbl-wrap" id="admCouponsTable"></div>
     </div>
 
+    <!-- MARKETING TAB -->
+    <div class="adm-section" id="admSec-marketing">
+      <div style="font-family:'Tajawal',sans-serif;font-size:1.1rem;font-weight:900;margin-bottom:16px">التسويق والعروض</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+
+        <!-- بانر إعلاني -->
+        <div style="background:#141414;border:1px solid #252525;border-radius:12px;padding:18px;grid-column:1/-1">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <div style="font-weight:700">📢 البانر الإعلاني (أعلى الصفحة)</div>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.82rem;color:#888">
+              <input type="checkbox" id="bannerEnabled" onchange="admSaveMarketing()" style="width:16px;height:16px;accent-color:#E50914">
+              تفعيل
+            </label>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:10px">
+            <div class="adm-form-group"><label>نص البانر</label><input type="text" id="bannerText" placeholder="🎉 عرض خاص — اشترك الآن بخصم 20%" oninput="admPreviewBanner()"></div>
+            <div class="adm-form-group"><label>لون الخلفية</label><input type="color" id="bannerColor" value="#F5C518" onchange="admPreviewBanner()" style="height:40px;cursor:pointer;width:60px"></div>
+          </div>
+          <div id="bannerPreview" style="padding:8px 16px;border-radius:8px;text-align:center;font-weight:700;font-size:0.85rem;background:#F5C518;color:#000;display:none"></div>
+          <button class="adm-btn adm-btn-red" onclick="admSaveMarketing()" style="margin-top:12px">💾 حفظ البانر</button>
+        </div>
+
+        <!-- عداد العرض المحدود -->
+        <div style="background:#141414;border:1px solid #252525;border-radius:12px;padding:18px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <div style="font-weight:700">⏱️ عرض محدود الوقت</div>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.82rem;color:#888">
+              <input type="checkbox" id="timerEnabled" onchange="admSaveMarketing()" style="width:16px;height:16px;accent-color:#E50914">
+              تفعيل
+            </label>
+          </div>
+          <div class="adm-form-group" style="margin-bottom:10px"><label>نص العرض</label><input type="text" id="timerText" placeholder="⚡ عرض ينتهي قريباً!"></div>
+          <div class="adm-form-group" style="margin-bottom:10px"><label>المدة (بالساعات)</label><input type="number" id="timerHours" value="24" min="1" max="720"></div>
+          <button class="adm-btn adm-btn-red" onclick="admStartTimer()" style="width:100%">🚀 تشغيل العداد</button>
+        </div>
+
+        <!-- إشعارات المبيعات -->
+        <div style="background:#141414;border:1px solid #252525;border-radius:12px;padding:18px">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <div style="font-weight:700">🔔 إشعارات المبيعات</div>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.82rem;color:#888">
+              <input type="checkbox" id="notifsEnabled" onchange="admSaveMarketing()" style="width:16px;height:16px;accent-color:#E50914">
+              تفعيل
+            </label>
+          </div>
+          <p style="color:#888;font-size:0.82rem;margin-bottom:12px;line-height:1.7">الإشعارات المنبثقة التي تظهر في أسفل الشاشة وتحاكي مشتريات العملاء</p>
+          <div id="notifsList" style="max-height:160px;overflow-y:auto"></div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <input type="text" id="newNotifText" placeholder="نص الإشعار الجديد..." class="adm-search" style="flex:1;width:auto">
+            <button class="adm-btn adm-btn-red" onclick="admAddNotif()">＋</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
     <!-- SETTINGS TAB -->
     <div class="adm-section" id="admSec-settings">
-      <div style="font-family:'Tajawal',sans-serif;font-size:1.1rem;font-weight:900;margin-bottom:16px">الإعدادات</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:700px">
+      <div style="font-family:'Tajawal',sans-serif;font-size:1.1rem;font-weight:900;margin-bottom:16px">إعدادات الموقع</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;max-width:800px">
+
+        <!-- وضع الصيانة -->
+        <div style="background:#141414;border:1px solid #252525;border-radius:12px;padding:18px;grid-column:1/-1">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+            <div style="font-weight:700">🚧 وضع الصيانة</div>
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.82rem;color:#888">
+              <input type="checkbox" id="maintEnabled" onchange="admToggleMaintenance()" style="width:16px;height:16px;accent-color:#E50914">
+              تفعيل
+            </label>
+          </div>
+          <div class="adm-form-group">
+            <label>رسالة الصيانة</label>
+            <input type="text" id="maintMsgInput" placeholder="سيتم الإطلاق قريباً ⚡">
+          </div>
+          <button class="adm-btn adm-btn-red" onclick="admSaveSettings()" style="margin-top:10px">💾 حفظ</button>
+        </div>
+
         <div style="background:#141414;border:1px solid #252525;border-radius:12px;padding:18px">
           <div style="font-weight:700;margin-bottom:14px">🔗 واتساب الدعم</div>
           <div class="adm-form-group">
@@ -1056,6 +1139,7 @@
           </div>
           <button class="adm-btn adm-btn-red" onclick="admSaveSettings()" style="margin-top:10px;width:100%">💾 حفظ</button>
         </div>
+
         <div style="background:#141414;border:1px solid #252525;border-radius:12px;padding:18px">
           <div style="font-weight:700;margin-bottom:14px">🔒 كلمة المرور</div>
           <div class="adm-form-group" style="margin-bottom:10px">
@@ -1068,12 +1152,14 @@
           </div>
           <button class="adm-btn adm-btn-red" onclick="admChangePass()" style="margin-top:10px;width:100%">🔐 تغيير</button>
         </div>
+
         <div style="background:#141414;border:1px solid #252525;border-radius:12px;padding:18px">
           <div style="font-weight:700;margin-bottom:14px">📤 تصدير واستيراد</div>
-          <button class="adm-btn adm-btn-red" onclick="admExport()" style="width:100%;margin-bottom:8px">📤 تصدير</button>
+          <button class="adm-btn adm-btn-red" onclick="admExport()" style="width:100%;margin-bottom:8px">📤 تصدير البيانات</button>
           <button class="adm-btn adm-btn-gray" onclick="document.getElementById('admImportFile').click()" style="width:100%">📥 استيراد</button>
           <input type="file" id="admImportFile" accept=".json" style="display:none" onchange="admImport(this)">
         </div>
+
       </div>
     </div>
 
@@ -1126,6 +1212,18 @@
         <button class="adm-add-plan" style="width:auto;padding:4px 10px;font-size:0.73rem" onclick="admAddPlan()">＋ خطة</button>
       </div>
       <div id="admPlansContainer"></div>
+    </div>
+    <div class="adm-form-row">
+      <div class="adm-form-group"><label>شارة المنتج</label>
+        <select id="af-badge">
+          <option value="">بدون شارة</option>
+          <option value="badge-hot">🔥 الأكثر طلباً</option>
+          <option value="badge-new">✨ جديد</option>
+          <option value="badge-best">⭐ قيمة عالية</option>
+          <option value="badge-sale">💥 عرض خاص</option>
+        </select>
+      </div>
+      <div class="adm-form-group"><label>عدد المبيعات (للعرض)</label><input type="number" id="af-sold" placeholder="50" min="0"></div>
     </div>
     <div class="adm-form-row">
       <div class="adm-form-group"><label>ميزة 1</label><input type="text" id="af-f1" placeholder="مثال: استلام فوري"></div>
@@ -2119,6 +2217,294 @@ function admToast(msg, color) { showToast(msg); }
 
 
 document.getElementById('admPassInput')?.addEventListener('keydown', e => { if(e.key==='Enter') admDoLogin(); });
+
+// ===== MARKETING MODULE =====
+let admMarketing = JSON.parse(localStorage.getItem('fc_marketing') || '{}');
+let saleTimerInterval = null;
+
+function admSaveMarketing() {
+  const bannerEnabled = document.getElementById('bannerEnabled')?.checked;
+  const bannerText = document.getElementById('bannerText')?.value || '';
+  const bannerColor = document.getElementById('bannerColor')?.value || '#F5C518';
+  const timerEnabled = document.getElementById('timerEnabled')?.checked;
+  const timerText = document.getElementById('timerText')?.value || '⚡ عرض محدود!';
+  const notifsEnabled = document.getElementById('notifsEnabled')?.checked;
+
+  admMarketing.bannerEnabled = bannerEnabled;
+  admMarketing.bannerText = bannerText;
+  admMarketing.bannerColor = bannerColor;
+  admMarketing.timerEnabled = timerEnabled;
+  admMarketing.timerText = timerText;
+  admMarketing.notifsEnabled = notifsEnabled;
+  if(admMarketing.notifs === undefined) admMarketing.notifs = [...notifData];
+
+  localStorage.setItem('fc_marketing', JSON.stringify(admMarketing));
+  applyMarketing();
+  admToast('✅ تم الحفظ!');
+}
+
+function admStartTimer() {
+  const hours = parseInt(document.getElementById('timerHours')?.value) || 24;
+  const text = document.getElementById('timerText')?.value || '⚡ عرض محدود!';
+  const endTime = Date.now() + hours * 3600 * 1000;
+  admMarketing.timerEnabled = true;
+  admMarketing.timerEnd = endTime;
+  admMarketing.timerText = text;
+  if(document.getElementById('timerEnabled')) document.getElementById('timerEnabled').checked = true;
+  localStorage.setItem('fc_marketing', JSON.stringify(admMarketing));
+  applyMarketing();
+  admToast('🚀 تم تشغيل العداد لمدة ' + hours + ' ساعة!');
+}
+
+function admPreviewBanner() {
+  const text = document.getElementById('bannerText')?.value;
+  const color = document.getElementById('bannerColor')?.value || '#F5C518';
+  const preview = document.getElementById('bannerPreview');
+  if(!preview) return;
+  if(text) {
+    preview.textContent = text;
+    preview.style.background = color;
+    preview.style.color = isLightColor(color) ? '#000' : '#fff';
+    preview.style.display = 'block';
+  } else {
+    preview.style.display = 'none';
+  }
+}
+
+function isLightColor(hex) {
+  const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+  return (r*299 + g*587 + b*114) / 1000 > 128;
+}
+
+function admLoadMarketing() {
+  if(!admMarketing) return;
+  if(document.getElementById('bannerEnabled')) document.getElementById('bannerEnabled').checked = !!admMarketing.bannerEnabled;
+  if(document.getElementById('bannerText')) document.getElementById('bannerText').value = admMarketing.bannerText || '';
+  if(document.getElementById('bannerColor')) document.getElementById('bannerColor').value = admMarketing.bannerColor || '#F5C518';
+  if(document.getElementById('timerEnabled')) document.getElementById('timerEnabled').checked = !!admMarketing.timerEnabled;
+  if(document.getElementById('timerText')) document.getElementById('timerText').value = admMarketing.timerText || '';
+  if(document.getElementById('notifsEnabled')) document.getElementById('notifsEnabled').checked = admMarketing.notifsEnabled !== false;
+  admRenderNotifsList();
+  admPreviewBanner();
+}
+
+function admRenderNotifsList() {
+  const el = document.getElementById('notifsList');
+  if(!el) return;
+  const list = admMarketing.notifs || notifData;
+  el.innerHTML = list.map((n,i) => `
+    <div style="display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid #1a1a1a">
+      <span style="font-size:1rem">${n.icon||'🔔'}</span>
+      <span style="flex:1;font-size:0.8rem;color:#aaa">${n.text}</span>
+      <button class="adm-act-btn" onclick="admDelNotif(${i})" style="width:24px;height:24px;font-size:0.75rem">✕</button>
+    </div>`).join('');
+}
+
+function admAddNotif() {
+  const input = document.getElementById('newNotifText');
+  const text = input?.value?.trim();
+  if(!text) return;
+  if(!admMarketing.notifs) admMarketing.notifs = [...notifData];
+  admMarketing.notifs.push({icon:'🔔', text, time:'منذ دقيقة'});
+  localStorage.setItem('fc_marketing', JSON.stringify(admMarketing));
+  input.value = '';
+  admRenderNotifsList();
+  admToast('✅ تمت إضافة الإشعار');
+}
+
+function admDelNotif(i) {
+  if(!admMarketing.notifs) admMarketing.notifs = [...notifData];
+  admMarketing.notifs.splice(i,1);
+  localStorage.setItem('fc_marketing', JSON.stringify(admMarketing));
+  admRenderNotifsList();
+}
+
+function applyMarketing() {
+  const m = JSON.parse(localStorage.getItem('fc_marketing') || '{}');
+
+  // Banner
+  const banner = document.getElementById('topBanner');
+  if(banner) {
+    if(m.bannerEnabled && m.bannerText) {
+      banner.textContent = m.bannerText;
+      banner.style.background = m.bannerColor || '#F5C518';
+      banner.style.color = isLightColor(m.bannerColor || '#F5C518') ? '#000' : '#fff';
+      banner.style.display = 'flex';
+    } else {
+      banner.style.display = 'none';
+    }
+  }
+
+  // Timer
+  const timerBar = document.getElementById('saleTimerBar');
+  if(timerBar) {
+    if(m.timerEnabled && m.timerEnd && m.timerEnd > Date.now()) {
+      timerBar.style.display = 'flex';
+      document.getElementById('saleTimerText').textContent = m.timerText || '⚡ عرض محدود!';
+      if(saleTimerInterval) clearInterval(saleTimerInterval);
+      saleTimerInterval = setInterval(() => {
+        const left = m.timerEnd - Date.now();
+        if(left <= 0) { timerBar.style.display='none'; clearInterval(saleTimerInterval); return; }
+        const h = Math.floor(left/3600000), mn = Math.floor((left%3600000)/60000), s = Math.floor((left%60000)/1000);
+        document.getElementById('saleTimerCount').textContent = String(h).padStart(2,'0') + ':' + String(mn).padStart(2,'0') + ':' + String(s).padStart(2,'0');
+      }, 1000);
+    } else {
+      timerBar.style.display = 'none';
+    }
+  }
+
+  // Notifs
+  if(m.notifs && m.notifs.length) {
+    window._customNotifs = m.notifs;
+  }
+  window._notifsEnabled = m.notifsEnabled !== false;
+}
+
+// Override showNextNotif to use custom notifs
+const _origShowNextNotif = window.showNextNotif;
+window.showNextNotif = function() {
+  if(window._notifsEnabled === false) return;
+  const list = window._customNotifs || notifData;
+  const notif = document.getElementById('liveNotif');
+  if(!notif) return;
+  const data = list[notifIndex % list.length];
+  document.getElementById('liveNotifIcon').textContent = data.icon || '🔔';
+  document.getElementById('liveNotifText').textContent = data.text;
+  document.getElementById('liveNotifTime').textContent = data.time || 'منذ دقيقة';
+  notif.classList.add('show');
+  setTimeout(() => { notif.classList.remove('show'); notifIndex++; setTimeout(window.showNextNotif, 6000); }, 3500);
+};
+
+// Override admTab to load marketing data
+const _origAdmTab = window.admTab;
+window.admTab = function(id, el) {
+  document.querySelectorAll('.adm-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.adm-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('admSec-' + id).classList.add('active');
+  el.classList.add('active');
+  if(id === 'marketing') admLoadMarketing();
+};
+
+// ===== MAINTENANCE =====
+function admToggleMaintenance() {
+  const enabled = document.getElementById('maintEnabled')?.checked;
+  admSettings.maintenance = enabled;
+  localStorage.setItem('fc_settings', JSON.stringify(admSettings));
+  applyMaintenanceMode();
+}
+
+function applyMaintenanceMode() {
+  const s = JSON.parse(localStorage.getItem('fc_settings') || '{}');
+  const overlay = document.getElementById('maintenanceOverlay');
+  const msg = document.getElementById('maintMsg');
+  if(overlay) {
+    if(s.maintenance) {
+      overlay.style.display = 'flex';
+      if(msg && s.maintMsg) msg.textContent = s.maintMsg;
+    } else {
+      overlay.style.display = 'none';
+    }
+  }
+}
+
+// Update admSaveSettings to include maintenance msg
+const _origAdmSaveSettings = window.admSaveSettings;
+window.admSaveSettings = function() {
+  admSettings.waNumber = document.getElementById('admWaNum')?.value?.trim() || '';
+  admSettings.maintenance = document.getElementById('maintEnabled')?.checked || false;
+  admSettings.maintMsg = document.getElementById('maintMsgInput')?.value?.trim() || '';
+  localStorage.setItem('fc_settings', JSON.stringify(admSettings));
+  applyMaintenanceMode();
+  admToast('✅ تم حفظ الإعدادات!');
+};
+
+// Load settings into settings tab
+const _origAdmTab2 = window.admTab;
+window.admTab = function(id, el) {
+  document.querySelectorAll('.adm-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.adm-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('admSec-' + id).classList.add('active');
+  el.classList.add('active');
+  if(id === 'marketing') admLoadMarketing();
+  if(id === 'settings') {
+    if(document.getElementById('maintEnabled')) document.getElementById('maintEnabled').checked = !!admSettings.maintenance;
+    if(document.getElementById('maintMsgInput')) document.getElementById('maintMsgInput').value = admSettings.maintMsg || '';
+    if(document.getElementById('admWaNum')) document.getElementById('admWaNum').value = admSettings.waNumber || '966551856922';
+  }
+};
+
+// Apply on page load
+applyMarketing();
+applyMaintenanceMode();
+
+// Update admSaveProduct to include badge and sold
+const _origAdmSaveProduct = window.admSaveProduct;
+window.admSaveProduct = function() {
+  const name = document.getElementById('af-name').value.trim();
+  const brand = document.getElementById('af-brand').value.trim();
+  const slug = document.getElementById('af-slug').value.trim();
+  if(!name) { admToast('⚠️ أدخل اسم المنتج','orange'); return; }
+  if(!brand) { admToast('⚠️ أدخل البراند','orange'); return; }
+  if(!slug) { admToast('⚠️ أدخل Path Segment','orange'); return; }
+  if(admProducts.find(p => p.slug===slug && p.id!==admEditId)) { admToast('❌ هذا الـ Path موجود مسبقاً','red'); return; }
+  const color = document.getElementById('af-color').value;
+  const plans = admGetPlans();
+  const feats = [document.getElementById('af-f1').value.trim(), document.getElementById('af-f2').value.trim()].filter(Boolean);
+  const badge = document.getElementById('af-badge')?.value || '';
+  const sold = parseInt(document.getElementById('af-sold')?.value) || 0;
+  const badgeTextMap = {'badge-hot':'🔥 الأكثر طلباً','badge-new':'✨ جديد','badge-best':'⭐ قيمة عالية','badge-sale':'💥 عرض خاص'};
+  const prod = {
+    id: admEditId || Date.now(),
+    name, brand, slug,
+    cat: document.getElementById('af-cat').value,
+    price: parseFloat(document.getElementById('af-price').value)||0,
+    desc: document.getElementById('af-desc').value.trim(),
+    img: document.getElementById('af-img').value.trim(),
+    color, bg: color+'22',
+    features: feats.length ? feats : ['استلام فوري بعد الدفع'],
+    plans: plans.length ? plans : null,
+    badge: badge || null,
+    badgeText: badge ? badgeTextMap[badge] : '',
+    sold, visible: true,
+  };
+  if(admEditId) {
+    const idx = admProducts.findIndex(p => p.id===admEditId);
+    if(idx>=0) { prod.visible=admProducts[idx].visible; admProducts[idx]=prod; }
+  } else {
+    admProducts.push(prod);
+  }
+  admSaveAll();
+  admRenderProducts();
+  admCloseModal('admProductModal');
+  admToast(admEditId ? '✅ تم تحديث المنتج!' : '✅ تمت إضافة المنتج!');
+  admEditId = null;
+};
+
+// Update openEdit to fill badge and sold
+const _origAdmOpenEdit = window.admOpenEdit;
+window.admOpenEdit = function(id) {
+  const p = admProducts.find(x => x.id===id);
+  if(!p) return;
+  admEditId = id;
+  document.getElementById('admModalTitle').textContent = 'تعديل: ' + p.name;
+  document.getElementById('af-name').value = p.name||'';
+  document.getElementById('af-brand').value = p.brand||'';
+  document.getElementById('af-slug').value = p.slug||'';
+  document.getElementById('af-cat').value = p.cat||'other';
+  document.getElementById('af-price').value = p.price||'';
+  document.getElementById('af-desc').value = p.desc||'';
+  document.getElementById('af-img').value = p.img||'';
+  document.getElementById('af-color').value = p.color||'#E50914';
+  document.getElementById('af-f1').value = (p.features||[])[0]||'';
+  document.getElementById('af-f2').value = (p.features||[])[1]||'';
+  if(document.getElementById('af-badge')) document.getElementById('af-badge').value = p.badge||'';
+  if(document.getElementById('af-sold')) document.getElementById('af-sold').value = p.sold||0;
+  document.getElementById('admPPSeg').textContent = p.slug||'';
+  const pc = document.getElementById('admPlansContainer');
+  pc.innerHTML = '';
+  if(p.plans) p.plans.forEach(pl => admAddPlan(pl.name, pl.price, pl.desc));
+  document.getElementById('admProductModal').classList.add('show');
+};
 </script>
 </body>
 </html>
